@@ -2,8 +2,8 @@ import subprocess
 import os
 
 OPT = ["O0", "O1", "O2", "O3"]
-fileName = "test"  #'path/to/file'
-func0 = "main"
+fileName = "new_passwd"  #'path/to/file'
+func0 = "generate_password"
 for opt_state in OPT:
     output_file = fileName + "_" + opt_state
     input_file = fileName + ".c"
