@@ -25,7 +25,7 @@ def main():
     print(len(dataset))
 #    row = 0
 #    while row < 1:
-    for row in dataset:
+    # for row in dataset:
         # Do stuff with each row
         # 3) Option A: Manually access row fields. For instance, access the function definition:
         #pprint.pp(dataset[row])
