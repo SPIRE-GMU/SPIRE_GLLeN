@@ -8,6 +8,7 @@ from datasets import load_dataset
 import os
 import subprocess
 import torch
+import pprint
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from accelerate import Accelerator
 import argparse
@@ -26,14 +27,15 @@ def main():
     """
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
-        "jordiae/exebench", split="test_synth"
+        "jordiae/exebench", split="train_real_compilable"
     )  # , use_auth_token=True)
     # 2) Iterate over dataset
 
     for row in dataset:
         func0 = row['fname']
+        pprint.pp(row)
         with open(original_file, "w") as f:
-            f.write("void main()\n{}\n" + row['func_def'])
+            f.write("#include <stdint.h>\nvoid main()\n{}\n" + row['func_def'] + "\n")
         #    row = 0
         #    while row < 1:
         # for row in dataset:
