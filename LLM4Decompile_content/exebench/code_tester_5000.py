@@ -35,7 +35,7 @@ def main():
         func0 = row['fname']
         pprint.pp(row)
         with open(original_file, "w") as f:
-            f.write(f"#include <stdint.h>\n{row['real_deps']}\nvoid main()\n" + "{}\n" + row['func_def'] + "\n" + row['synth_deps'])
+            f.write(f"#include <stdint.h>\n{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + row['func_def'] + "\n")
         #    row = 0
         #    while row < 1:
         # for row in dataset:
