@@ -33,6 +33,7 @@ def main():
 
     for row in dataset:
         try:
+            print(1)
             func0 = row['fname']
             # pprint.pp(row)
             with open(original_file, "w") as f:
@@ -68,6 +69,7 @@ def main():
 
             break
         except:
+            print('1\n\n\n\n\n\n\n\n2')
             pass
     # TODO recompiled_file
 
