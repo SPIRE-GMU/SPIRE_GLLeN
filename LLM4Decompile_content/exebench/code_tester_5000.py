@@ -27,7 +27,7 @@ def main():
     """
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
-        "jordiae/exebench", split="train_real_compilable"
+        "jordiae/exebench", split="train_synth_compilable"
     )  # , use_auth_token=True)
     # 2) Iterate over dataset
 
@@ -67,10 +67,9 @@ def main():
             
                 # Get a list of files with .c or .o extensions in the current working directory
 
-            break
         except:
-            print('1\n\n\n\n\n\n\n\n2')
-            pass
+            print('This file sucks becuse exebench sucks')
+            break
     # TODO recompiled_file
 
     return 0
