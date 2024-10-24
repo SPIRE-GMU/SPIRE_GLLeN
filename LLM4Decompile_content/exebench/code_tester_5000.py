@@ -42,7 +42,7 @@ def main():
             func0 = row['fname']
             # pprint.pp(row)
             with open(original_file, "w") as f:
-                f.write("#incluse <stdint.h>" + row['real_deps'] + row['func_def'])
+                f.write("#include <stdint.h>\n#include <stdio.h>\n" + row['real_deps'] + row['func_def'])
             f.close()
             #    row = 0
             #    while row < 1:
@@ -68,7 +68,7 @@ def main():
             decompiled_func = decompiler(asm_file, tokenizer, model)
 
             with open(recompiled_file, "w") as f:
-                f.write("#incluse <stdint.h>" + row['real_deps'] + decompiled_func)
+                f.write("#include <stdint.h>" + row['real_deps'] + decompiled_func)
             f.close()
 
             currently_a_success = True
