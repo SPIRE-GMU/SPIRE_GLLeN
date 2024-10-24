@@ -34,11 +34,12 @@ def main():
 
     for row in dataset:
         try:
-            print(1)
+            time.sleep(5)
             func0 = row['fname']
             # pprint.pp(row)
             with open(original_file, "w") as f:
                 f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + row['func_def'] + "\n")
+            f.close()
             #    row = 0
             #    while row < 1:
             # for row in dataset:
@@ -64,6 +65,7 @@ def main():
 
             with open(recompiled_file, "w") as f:
                 f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + decompiled_func + "\n")
+            f.close()
             time.sleep(1)
 
                 # Clear the terminal screen
