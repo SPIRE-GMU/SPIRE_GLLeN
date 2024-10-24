@@ -34,7 +34,6 @@ def main():
 
     for row in dataset:
         try:
-            time.sleep(5)
             func0 = row['fname']
             # pprint.pp(row)
             with open(original_file, "w") as f:
@@ -149,6 +148,7 @@ def load_model():
 
 
 def decompiler(old_file_name, func_name, new_file_name):
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
     accelerator = Accelerator()
 
     # Load the tokenizer and model
