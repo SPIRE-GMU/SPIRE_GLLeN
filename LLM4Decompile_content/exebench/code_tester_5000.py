@@ -68,7 +68,7 @@ def main():
             decompiled_func = decompiler(asm_file, tokenizer, model)
 
             with open(recompiled_file, "w") as d:
-                d.write("#include <stdint.h>" + row['real_deps'] + '\n' + decompiled_func)
+                d.write("#include <stdint.h>\n#include <stdio.h>\n" + row['real_deps'] + '\n' + decompiled_func)
             d.close()
 
             currently_a_success = True
