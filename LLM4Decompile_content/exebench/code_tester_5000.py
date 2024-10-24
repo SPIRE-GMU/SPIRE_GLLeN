@@ -32,7 +32,7 @@ def main():
         "jordiae/exebench", split="train_real_compilable"
     )  # , use_auth_token=True)
     # 2) Iterate over dataset
-
+    tokenizer, model = load_model()
     for row in dataset:
         try:
             func0 = row['fname']
@@ -61,7 +61,7 @@ def main():
 
             asm_file = assemble(original_file, origin_no_path, func0)
 
-            decompiled_func = decompiler(asm_file, func0, recompiled_file)
+            decompiled_func = decompiler(asm_file, tokenizer, model)
 
             with open(recompiled_file, "w") as f:
                 f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + decompiled_func + "\n")
@@ -150,12 +150,12 @@ def load_model():
     return tokenizer, model
 
 
-def decompiler(old_file_name, func_name, new_file_name):
+def decompiler(old_file_name, tokenizer, model):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     accelerator = Accelerator()
 
     # Load the tokenizer and model
-    tokenizer, model = load_model()
+    
     model = accelerator.prepare(model)
 
     # Read the assembly function
