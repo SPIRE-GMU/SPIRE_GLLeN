@@ -30,6 +30,7 @@ def main():
     """
     currently_a_success = True
     garbage_file_count = 0
+    success_count = 0
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
         "jordiae/exebench", split="train_real_compilable"
@@ -84,6 +85,9 @@ def main():
         try:
             if currently_a_success:
                 assemble(recompiled_file, recompile_no_path, func0)
+                shutil.copy(original_file, f'red-team-failures/{original_file}{success_count}.c')
+                shutil.copy(original_file, f'red-team-failures/{recompiled_file}{success_count}.c')
+                success_count += 1
             else: 
                 pass
         except:
