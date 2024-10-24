@@ -73,6 +73,8 @@ def main():
 
             currently_a_success = True
             exit(1)
+            quit()
+            exit(0)
                 # Clear the terminal screen
 
                 # Display the ASCII art
