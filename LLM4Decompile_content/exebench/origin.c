@@ -1,5 +1,4 @@
 #include <stdint.h>
-None
 #define NULL ((void*)0)
 typedef unsigned long size_t;  // Customize by platform.
 typedef long intptr_t; typedef unsigned long uintptr_t;
@@ -36,4 +35,3 @@ s_str s_str_create_from_s_str(const s_str *const s_str_ptr_for_create){
         }
     }
     return new_str;
-}

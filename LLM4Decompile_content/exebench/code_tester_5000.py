@@ -27,7 +27,7 @@ def main():
     """
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
-        "jordiae/exebench", split="train_synth_compilable"
+        "jordiae/exebench", split="train_real_compilable"
     )  # , use_auth_token=True)
     # 2) Iterate over dataset
 
