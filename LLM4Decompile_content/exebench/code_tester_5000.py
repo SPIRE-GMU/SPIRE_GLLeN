@@ -5,6 +5,7 @@ decompile a recombilable C file
 """
 
 from datasets import load_dataset
+import time
 import os
 import subprocess
 import torch
@@ -37,7 +38,7 @@ def main():
             func0 = row['fname']
             # pprint.pp(row)
             with open(original_file, "w") as f:
-                f.write(f"#include <stdint.h>\n{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + row['func_def'] + "\n")
+                f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + row['func_def'] + "\n")
             #    row = 0
             #    while row < 1:
             # for row in dataset:
@@ -59,7 +60,11 @@ def main():
 
             asm_file = assemble(original_file, origin_no_path, func0)
 
-            decompiler(asm_file, func0, recompiled_file)
+            decompiled_func = decompiler(asm_file, func0, recompiled_file)
+
+            with open(recompiled_file, "w") as f:
+                f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + decompiled_func + "\n")
+            time.sleep(1)
 
                 # Clear the terminal screen
 
@@ -68,8 +73,13 @@ def main():
                 # Get a list of files with .c or .o extensions in the current working directory
 
         except:
+            time.sleep(1)
             print('This file sucks becuse exebench sucks')
-            break
+            pass
+        try:
+            pass
+        except:
+            pass
     # TODO recompiled_file
 
     return 0
@@ -172,9 +182,8 @@ def decompiler(old_file_name, func_name, new_file_name):
 
     # Ask the user if they want to save the decompiled function to a file
 
-    with open(new_file_name, "w") as f:
-        f.write(decompiled_function)
-    return 0
+
+    return decompiled_function
 
 
 def save_failure():
