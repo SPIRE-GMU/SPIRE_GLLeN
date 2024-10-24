@@ -67,6 +67,8 @@ def main():
             f.close()
             time.sleep(1)
 
+            torch.cuda.empty_cache()
+
                 # Clear the terminal screen
 
                 # Display the ASCII art
