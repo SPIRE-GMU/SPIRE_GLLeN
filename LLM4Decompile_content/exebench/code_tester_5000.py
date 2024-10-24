@@ -85,14 +85,14 @@ def main():
         try:
             if currently_a_success:
                 assemble(recompiled_file, recompile_no_path, func0)
-                shutil.copy(original_file, f'red-team-success/{original_file}{success_count}.c')
-                shutil.copy(original_file, f'red-team-success/{recompiled_file}{success_count}.c')
+                shutil.copy(original_file, f'red-team-success/{origin_no_path}{success_count}.c')
+                shutil.copy(original_file, f'red-team-success/{recompile_no_path}{success_count}.c')
                 success_count += 1
             else: 
                 pass
         except:
-            shutil.copy(original_file, f'red-team-failures/{original_file}{garbage_file_count}.c')
-            shutil.copy(original_file, f'red-team-failures/{recompiled_file}{garbage_file_count}.c')
+            shutil.copy(original_file, f'red-team-failures/{origin_no_path}{garbage_file_count}.c')
+            shutil.copy(original_file, f'red-team-failures/{recompile_no_path}{garbage_file_count}.c')
             garbage_file_count += 1
 
     # TODO recompiled_file
