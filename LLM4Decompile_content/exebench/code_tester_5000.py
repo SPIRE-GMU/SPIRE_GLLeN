@@ -66,15 +66,13 @@ def main():
             asm_file = assemble(original_file, origin_no_path, func0)
 
             decompiled_func = decompiler(asm_file, tokenizer, model)
-            print(decompiled_func)
-            with open(recompiled_file, "w") as f:
-                f.write("#include <stdint.h>" + row['real_deps'] + '\n' + decompiled_func)
-            f.close()
+            
+            with open(recompiled_file, "w") as d:
+                d.write("#include <stdint.h>" + row['real_deps'] + '\n' + decompiled_func)
+            d.close()
 
             currently_a_success = True
-            exit(1)
-            quit()
-            exit(0)
+
                 # Clear the terminal screen
 
                 # Display the ASCII art
@@ -190,9 +188,7 @@ def decompiler(file_name, tokenizer, model):
 
     # Decode the generated output
     decompiled_function = tokenizer.decode(outputs[0][len(inputs["input_ids"][0]) : -1])
-    print(decompiled_function)
-    print(type(decompiled_function))
-
+    
     with torch.no_grad():
         torch.cuda.empty_cache()
     gc.collect()
