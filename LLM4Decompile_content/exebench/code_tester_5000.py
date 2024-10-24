@@ -66,7 +66,7 @@ def main():
             asm_file = assemble(original_file, origin_no_path, func0)
 
             decompiled_func = decompiler(asm_file, tokenizer, model)
-            
+
             with open(recompiled_file, "w") as d:
                 d.write("#include <stdint.h>" + row['real_deps'] + '\n' + decompiled_func)
             d.close()
@@ -86,13 +86,13 @@ def main():
             if currently_a_success:
                 assemble(recompiled_file, recompile_no_path, func0)
                 shutil.copy(original_file, f'red-team-success/{origin_no_path}{success_count}.c')
-                shutil.copy(original_file, f'red-team-success/{recompile_no_path}{success_count}.c')
+                shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{success_count}.c')
                 success_count += 1
             else: 
                 pass
         except:
             shutil.copy(original_file, f'red-team-failures/{origin_no_path}{garbage_file_count}.c')
-            shutil.copy(original_file, f'red-team-failures/{recompile_no_path}{garbage_file_count}.c')
+            shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{garbage_file_count}.c')
             garbage_file_count += 1
 
     # TODO recompiled_file
