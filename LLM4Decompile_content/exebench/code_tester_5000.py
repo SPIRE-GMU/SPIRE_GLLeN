@@ -8,6 +8,7 @@ from datasets import load_dataset
 import time
 import gc
 import os
+import shutil
 import subprocess
 import torch
 import pprint
@@ -21,12 +22,13 @@ original_file = 'origin.c'
 origin_no_path = 'origin'
 recompiled_file = 'new_file.c'
 recompile_no_path = 'new_file'
-garbage_file_count = 0
+
 
 def main():
     """
     The main function controling all other functions
     """
+    garbage_file_count = 0
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
         "jordiae/exebench", split="train_real_compilable"
@@ -66,7 +68,6 @@ def main():
             with open(recompiled_file, "w") as f:
                 f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + decompiled_func + "\n")
             f.close()
-            time.sleep(1)
 
             
 
@@ -77,13 +78,16 @@ def main():
                 # Get a list of files with .c or .o extensions in the current working directory
 
         except:
-            time.sleep(1)
             print('This file sucks becuse exebench sucks')
             pass
         try:
-            pass
+            assemble(recompiled_file, recompile_no_path, func0)
+
         except:
-            pass
+            shutil.copy(original_file, f'red-team-failures/{original_file}{garbage_file_count}.c')
+            shutil.copy(original_file, f'red-team-failures/{recompiled_file}{garbage_file_count}.c')
+            garbage_file_count += 1
+
     # TODO recompiled_file
 
     return 0
@@ -150,7 +154,7 @@ def load_model():
     return tokenizer, model
 
 
-def decompiler(old_file_name, tokenizer, model):
+def decompiler(file_name, tokenizer, model):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     accelerator = Accelerator()
 
@@ -163,7 +167,7 @@ def decompiler(old_file_name, tokenizer, model):
     # with open(asm_file_path, 'r') as f:
 
     # read the assembly function
-    with open(old_file_name, "r") as f:
+    with open(file_name, "r") as f:
         asm_function = f.read()
 
     # Allocate the inputs tensor on the accelerator device
