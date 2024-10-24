@@ -67,7 +67,7 @@ def main():
             f.close()
             time.sleep(1)
 
-            torch.cuda.empty_cache()
+            
 
                 # Clear the terminal screen
 
@@ -177,6 +177,9 @@ def decompiler(old_file_name, func_name, new_file_name):
     # Decode the generated output
     decompiled_function = tokenizer.decode(outputs[0][len(inputs["input_ids"][0]) : -1])
 
+
+    with torch.no_grad():
+        torch.cuda.empty_cache()
     # Read the original C file
     # with open(file_name + '.c', 'r') as f:
     # original_function = f.read()
