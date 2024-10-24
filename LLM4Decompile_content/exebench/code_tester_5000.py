@@ -28,6 +28,7 @@ def main():
     """
     The main function controling all other functions
     """
+    currently_a_success = True
     garbage_file_count = 0
     # 1) Load dataset split. In this case, synthetic test split
     dataset = load_dataset(
@@ -69,7 +70,7 @@ def main():
                 f.write(f"{row['real_deps']}\n{row['synth_deps']}\nvoid main()\n" + "{}\n" + decompiled_func + "\n")
             f.close()
 
-            
+            currently_a_success = True
 
                 # Clear the terminal screen
 
@@ -79,10 +80,12 @@ def main():
 
         except:
             print('This file sucks becuse exebench sucks')
-            pass
+            currently_a_success = False
         try:
-            assemble(recompiled_file, recompile_no_path, func0)
-
+            if currently_a_success:
+                assemble(recompiled_file, recompile_no_path, func0)
+            else: 
+                pass
         except:
             shutil.copy(original_file, f'red-team-failures/{original_file}{garbage_file_count}.c')
             shutil.copy(original_file, f'red-team-failures/{recompiled_file}{garbage_file_count}.c')
