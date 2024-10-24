@@ -6,6 +6,7 @@ decompile a recombilable C file
 
 from datasets import load_dataset
 import time
+import gc
 import os
 import subprocess
 import torch
@@ -180,6 +181,7 @@ def decompiler(old_file_name, func_name, new_file_name):
 
     with torch.no_grad():
         torch.cuda.empty_cache()
+    gc.collect()
     # Read the original C file
     # with open(file_name + '.c', 'r') as f:
     # original_function = f.read()
