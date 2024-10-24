@@ -85,8 +85,8 @@ def main():
         try:
             if currently_a_success:
                 assemble(recompiled_file, recompile_no_path, func0)
-                shutil.copy(original_file, f'red-team-failures/{original_file}{success_count}.c')
-                shutil.copy(original_file, f'red-team-failures/{recompiled_file}{success_count}.c')
+                shutil.copy(original_file, f'red-team-success/{original_file}{success_count}.c')
+                shutil.copy(original_file, f'red-team-success/{recompiled_file}{success_count}.c')
                 success_count += 1
             else: 
                 pass
