@@ -82,7 +82,6 @@ def main():
         except:
             print('This file sucks becuse exebench sucks')
             currently_a_success = False
-            break
         try:
             if currently_a_success:
                 assemble(recompiled_file, recompile_no_path, func0)
@@ -109,7 +108,7 @@ def assemble(name, name_no_path, function_name):
     # os.system(f"gcc -c {file_name} -o {obj_file_name}")
 
     compile_command = (
-        f"gcc -S -c {name} -o {obj_file_name} -lm"  # compile the code with GCC on Linux
+        f"gcc -c {name} -o {obj_file_name} -lm"  # compile the code with GCC on Linux
     )
     subprocess.run(compile_command, shell=True, check=True)
     compile_command = f"objdump -d {obj_file_name}> {s_file_name}"  # disassemble the binary file into assembly instructions
