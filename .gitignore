@@ -1,5 +1,5 @@
 *.asm
-chatGBT/*
+chatGPT/*
 *.o
 *.s
 *.c
