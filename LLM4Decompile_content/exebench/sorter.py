@@ -13,7 +13,7 @@ compile_command = [
 while file_num < 10:
     
     try:
-        test = subprocess.check_output(compile_command)
+        test = subprocess.run(compile_command)
         
     except:
         print(test)
