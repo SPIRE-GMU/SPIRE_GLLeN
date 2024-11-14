@@ -16,7 +16,8 @@ while file_num < 10:
         test = subprocess.check_output(compile_command, timeout=3,
         universal_newlines=True)
     except subprocess.CalledProcessError as exc:
-        print(exc.stderr)
+        if "declaration" in exc.stderr:
+            print(exc.stderr)
         test = exc.stderr
         print(test)
         file_num += 1
