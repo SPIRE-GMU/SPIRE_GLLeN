@@ -14,8 +14,9 @@ while file_num < 10:
     
     try:
         test = subprocess.check_output(compile_command)
-        print(test)
+        
     except:
+        print(test)
         file_num += 1
         name = "new_file" + str(file_num) + ".c"
         compile_command = [
