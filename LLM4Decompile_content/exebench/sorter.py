@@ -12,7 +12,7 @@ misc_errors = 0
 compile_command = [
         "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
 ]
-while file_num < 11461:
+while file_num < 1146:
     error_found = False
     try:
         test = subprocess.run(compile_command, capture_output=True, text=True)
@@ -43,6 +43,7 @@ while file_num < 11461:
         
         if not error_found:
             misc_errors += 1
+            print('found')
 
 
         file_num +=1
