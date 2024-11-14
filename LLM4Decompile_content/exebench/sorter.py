@@ -5,13 +5,18 @@ import shutil
 import subprocess
 
 file_num = 0
-name = "new_file" + file_num + ".c"
+name = "new_file" + str(file_num) + ".c"
 
 compile_command = [
-        "gcc", '-c', name, '-o', 'testing' "-lm"  # compile the code with GCC on Linux
+        "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
 ]
+while file_num < 10:
+    subprocess.check_output(compile_command)
+    file_num += 1
+    name = "new_file" + str(file_num) + ".c"
+    compile_command = [
+        "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
+    ]
 
-
-subprocess.check_output(compile_command)
 
 
