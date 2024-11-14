@@ -12,15 +12,15 @@ compile_command = [
 ]
 while file_num < 10:
     
-    try:
-        test = subprocess.run(compile_command)
-        
-    except:
-        print(test)
-        file_num += 1
-        name = "new_file" + str(file_num) + ".c"
-        compile_command = [
-            "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
-        ]
+
+    test = subprocess.run(compile_command)
+    print(test)
+    file_num += 1
+    name = "new_file" + str(file_num) + ".c"
+    compile_command = [
+        "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
+    ]
+
+
 
 
