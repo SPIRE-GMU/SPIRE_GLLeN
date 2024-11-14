@@ -17,7 +17,7 @@ while file_num < 100:
         test = subprocess.run(compile_command, capture_output=True, text=True)
         if "expected declaration or statement" in test.stderr:
             print(test.stderr)
-        elif "expected identifier or '(' at end of input" in test.stderr:
+        else:
             print(test.stderr)
 
         file_num +=1
