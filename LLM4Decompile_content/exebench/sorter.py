@@ -13,7 +13,7 @@ compile_command = [
 while file_num < 10:
     
     try:
-        test = subprocess.check_output(compile_command, shell=True, timeout=3,
+        test = subprocess.check_output(compile_command, timeout=3,
         universal_newlines=True)
     except subprocess.CalledProcessError as exc:
         print(exc.stderr, exc.stdout)
