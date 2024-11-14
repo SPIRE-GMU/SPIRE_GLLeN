@@ -18,7 +18,7 @@ while file_num < 10:
     except subprocess.CalledProcessError as exc:
         if "declaration" in exc.stderr:
             print(exc.stderr)
-        test = exc.stderr
+        testing = exc.stderr
         print(test)
         file_num += 1
         name = "new_file" + str(file_num) + ".c"
