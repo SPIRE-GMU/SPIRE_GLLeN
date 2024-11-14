@@ -43,7 +43,7 @@ while file_num < 1146:
         
         if not error_found:
             misc_errors += 1
-            print('found')
+
 
 
         file_num +=1
