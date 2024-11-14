@@ -14,7 +14,7 @@ while file_num < 10:
     
     try:
         test = subprocess.run(compile_command, capture_output=True, text=True)
-        print(test)
+        print(test.stderr)
         file_num +=1
     except subprocess.CalledProcessError as exc:
         print(exc.stderr, exc.stdout)
