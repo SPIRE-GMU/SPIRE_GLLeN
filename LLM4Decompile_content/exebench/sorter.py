@@ -13,7 +13,7 @@ compile_command = [
 while file_num < 10:
     
 
-    test = subprocess.run(compile_command)
+    test = subprocess.Popen(compile_command, stderr=subprocess.PIPE)
     print(test)
     file_num += 1
     name = "new_file" + str(file_num) + ".c"
