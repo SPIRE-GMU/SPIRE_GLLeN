@@ -13,14 +13,11 @@ compile_command = [
 while file_num < 10:
     
     try:
-        test = subprocess.check_output(compile_command, timeout=3,
-        universal_newlines=True)
-    except subprocess.CalledProcessError as exc:
-        print(exc.stdout)
-        if "declaration" in exc.stdout:
-            print(exc.stderr)
-        testing = exc.stderr
+        test = subprocess.run(compile_command, capture_output=True, text=True)
         print(test)
+        file_num +=1
+    except subprocess.CalledProcessError as exc:
+        print(exc.stderr, exc.stdout)
         file_num += 1
         name = "new_file" + str(file_num) + ".c"
         compile_command = [
