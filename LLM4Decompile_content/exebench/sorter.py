@@ -59,4 +59,4 @@ print("import errors: ", import_errors)
 
 print('jump errors: ', jump_errors)
 
-print('others: ', )
+print('others: ', misc_errors)
