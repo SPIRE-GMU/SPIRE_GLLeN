@@ -14,7 +14,7 @@ while file_num < 10:
     
 
     test = subprocess.Popen(compile_command, stderr=subprocess.PIPE)
-    print(test)
+    print(test[5])
     file_num += 1
     name = "new_file" + str(file_num) + ".c"
     compile_command = [
