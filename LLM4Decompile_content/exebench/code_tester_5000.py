@@ -93,18 +93,18 @@ def main():
                 currently_a_success = False
             try:
                 if currently_a_success:
-                    if opt == 1:
+                    if opt == 0:
                         assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
                         shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_1}.c')
                         shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_1}.c')
 
                         success_count_1 += 1
-                    elif opt == 2:
+                    elif opt == 1:
                         assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
                         shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_2}.c')
                         shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_2}.c')
                         success_count_2 += 1
-                    elif opt == 3:
+                    elif opt == 2:
                         assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
                         shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_3}.c')
                         shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_3}.c')
@@ -113,17 +113,17 @@ def main():
                     else: 
                         pass
             except:
-                if opt == 1:
+                if opt == 0:
 
                     shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_1}.c')
                     shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_1}.c')
                     garbage_file_count_1 += 1
-                elif opt == 2:
+                elif opt == 1:
 
                     shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_2}.c')
                     shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_2}.c') 
                     garbage_file_count_2 += 1 
-                elif opt == 3:
+                elif opt == 2:
 
                     shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_3}.c')
                     shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_3}.c')  
