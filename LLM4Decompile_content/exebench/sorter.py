@@ -5,14 +5,14 @@ import shutil
 import subprocess
 
 file_num = 0
-name = "new_file" + str(file_num) + ".c"
+name = "new_fileO3" + str(file_num) + ".c"
 jump_errors = 0
 import_errors = 0
 misc_errors = 0
 compile_command = [
         "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
 ]
-while file_num < 11461:
+while file_num < 1834:
     error_found = False
     try:
         test = subprocess.run(compile_command, capture_output=True, text=True)
@@ -47,12 +47,12 @@ while file_num < 11461:
 
 
         file_num +=1
-        name = "new_file" + str(file_num) + ".c"
+        name = "new_fileO3" + str(file_num) + ".c"
         compile_command = [
             "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
         ]
     except:
-        break
+        print(1)
 
 
 print("import errors: ", import_errors)

@@ -1,0 +1,123 @@
+[
+    {
+      "C Code Statement": "#include <stdio.h>",
+      "Assembly Code": "N/A"
+    },
+    {
+      "C Code Statement": "int addNumbers(int n);",
+      "Assembly Code": ".globl addNumbers;\n.type addNumbers, @function"
+    },
+    {
+      "C Code Statement": "int main()",
+      "Assembly Code": ".globl main;\n.type main, @function"
+    },
+    {
+      "C Code Statement": "printf(\"Enter a positive integer: \");",
+      "Assembly Code": "leaq .LC0(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall printf@PLT"
+    },
+    {
+      "C Code Statement": "scanf(\"%d\", &num);",
+      "Assembly Code": "leaq -12(%rbp), %rax;\nmovq %rax, %rsi;\nleaq .LC1(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall __isoc99_scanf@PLT"
+    },
+    {
+      "C Code Statement": "num = addNumbers(num);",
+      "Assembly Code": "movl -12(%rbp), %eax;\nmovl %eax, %edi;\ncall addNumbers"
+    },
+    {
+      "C Code Statement": "printf(\"Sum = %d\", num);",
+      "Assembly Code": "movq %rax, %rdx;\nmovl -12(%rbp), %eax;\nmovl %eax, %esi;\nleaq .LC2(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall printf@PLT"
+    },
+    {
+      "C Code Statement": "return 0;",
+      "Assembly Code": "movl $0, %eax;\nmovq -8(%rbp), %rdx;\nsubq %fs:40, %rdx;\nje .L3;\ncall __stack_chk_fail@PLT;\n.L3: leave;\nret"
+    },
+    {
+      "C Code Statement": "if (n != 0)",
+      "Assembly Code": "cmpl $0, -4(%rbp)"
+    },
+    {
+      "C Code Statement": "return n + addNumbers(n - 1);",
+      "Assembly Code": "movl -4(%rbp), %eax;\nsubl $1, %eax;\nmovl %eax, %edi;\ncall addNumbers;\nmovl -4(%rbp), %edx;\naddl %edx, %eax"
+    },
+    {
+      "C Code Statement": "else",
+      "Assembly Code": "je .L5"
+    },
+    {
+      "C Code Statement": "return n;",
+      "Assembly Code": "movl -4(%rbp), %eax"
+    },
+    {
+      "C Code Statement": "addNumbers(int n)",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovl %edi, -4(%rbp)"
+    },
+    {
+      "C Code Statement": "main()",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovq %fs:40, %rax;\nmovq %rax, -8(%rbp);\nxorl %eax, %eax"
+    },
+    {
+      "C Code Statement": "scanf(\"%d\", &num)",
+      "Assembly Code": "leaq -12(%rbp), %rax;\nmovq %rax, %rsi;\nleaq .LC1(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall __isoc99_scanf@PLT"
+    },
+    {
+      "C Code Statement": "printf(\"Factorial of %d = %ld\", n, multiplyNumbers(n));",
+      "Assembly Code": "movl -12(%rbp), %eax;\nmovl %eax, %edi;\ncall multiplyNumbers;\nmovq %rax, %rdx;\nmovl -12(%rbp), %eax;\nmovl %eax, %esi;\nleaq .LC2(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall printf@PLT"
+    },
+    {
+      "C Code Statement": "if (n >= 1)",
+      "Assembly Code": "cmpl $0, -20(%rbp)"
+    },
+    {
+      "C Code Statement": "return n * multiplyNumbers(n - 1);",
+      "Assembly Code": "movl -20(%rbp), %eax;\nsubl $1, %eax;\nmovl %eax, %edi;\ncall multiplyNumbers;\nimulq %rbx, %rax"
+    },
+    {
+      "C Code Statement": "else",
+      "Assembly Code": "jle .L5"
+    },
+    {
+      "C Code Statement": "return 1;",
+      "Assembly Code": "movl $1, %eax"
+    },
+    {
+      "C Code Statement": "multiplyNumbers(int n)",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovl %edi, -20(%rbp)"
+    },
+    {
+      "C Code Statement": "main()",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovq %fs:40, %rax;\nmovq %rax, -8(%rbp);\nxorl %eax, %eax"
+    },
+    {
+      "C Code Statement": "printf(\"Sum = %d\", addNumbers(n));",
+      "Assembly Code": "movl %eax, %esi;\nleaq .LC2(%rip), %rax;\nmovq %rax, %rdi;\nmovl $0, %eax;\ncall printf@PLT"
+    },
+    {
+      "C Code Statement": "addNumbers(int n)",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovl %edi, -4(%rbp)"
+    },
+    {
+      "C Code Statement": "return 0;",
+      "Assembly Code": "movl $0, %eax;\nmovq -8(%rbp), %rdx;\nsubq %fs:40, %rdx;\nje .L3;\ncall __stack_chk_fail@PLT;\n.L3: leave;\nret"
+    },
+    {
+      "C Code Statement": "if (n != 0)",
+      "Assembly Code": "cmpl $0, -4(%rbp)"
+    },
+    {
+      "C Code Statement": "return n + addNumbers(n - 1);",
+      "Assembly Code": "movl -4(%rbp), %eax;\nsubl $1, %eax;\nmovl %eax, %edi;\ncall addNumbers;\nmovl -4(%rbp), %edx;\naddl %edx, %eax"
+    },
+    {
+      "C Code Statement": "else",
+      "Assembly Code": "je .L5"
+    },
+    {
+      "C Code Statement": "return n;",
+      "Assembly Code": "movl -4(%rbp), %eax"
+    },
+    {
+      "C Code Statement": "addNumbers(int n)",
+      "Assembly Code": "pushq %rbp;\nmovq %rsp, %rbp;\nsubq $16, %rsp;\nmovl %edi, -4(%rbp)"
+    }
+  ]
+  
