@@ -2,7 +2,7 @@
 import os
 
 # ADD IMPORTS FOR OTHER LIBRARIES
-from imports import gccToCFG
+from Neo4J import gccToCFG
 from imports import exeBenchToC
 
 def main():
