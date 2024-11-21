@@ -1,0 +1,7 @@
+datasets
+os
+subprocess
+torch
+transformers
+accelerate
+argparse
