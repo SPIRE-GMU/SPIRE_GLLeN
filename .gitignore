@@ -3,3 +3,5 @@ chatGPT/*
 *.o
 *.s
 *.c
+*.env
+*.cfg
