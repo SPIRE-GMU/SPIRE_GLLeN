@@ -4,6 +4,7 @@
 import os
 from dotenv import load_dotenv
 import numpy as np
+import subprocess
 
 # Model Imports
 import faiss
@@ -80,6 +81,24 @@ class Neo4jHandler:
         records, summary, keys = self.driver.execute_query(query, database_="neo4j")
 
 
+    def generate_cfg_c(self, c_file_path):
+        gcc_cfg_command = [
+            "gcc",  # Adjusted to use gcc 11.4.0 for ubuntu 
+            "-fdump-tree-all-graph",
+            "-c",  # Compile only, do not link (suitable for files without main)
+            c_file_path,
+            "-o",
+            os.path.join(temp_dir, f"{filename}.out")
+        ]
+
+        try:
+            # Run the GCC command to create the CFG
+            result_cfg = subprocess.run(gcc_cfg_command, check=True, capture_output=True, text=True)     
+        except Exception as e:
+            print("Oops")
+
+
+
 # Usage Example
 if __name__ == "__main__":
     # Define file lists
@@ -95,42 +114,69 @@ if __name__ == "__main__":
         "quadratic_roots.c", "quotient_remainder.c", "recursive_factorial.c"
     ]
 
-    # Initialize the CodeEmbeddingSearch
+    file_directory = '/home/spire2/SPIRE_GLLeN/ragPipeline/asm_C'
+    asm_files = []
+
+    # Check if the provided directory path exists
+    if os.path.isdir(file_directory):
+        # Iterate over all files in the directory
+        for filename in os.listdir(file_directory):
+            if filename.endswith('.s'):  # Check for .asm files
+                asm_files.append(filename)  # Store the file name in the list
+
+    # for name in asm_files:
+    #     print(name)
+
+    c_files = [x.replace(".s",".c") for x in asm_files]
+
+    # for name in c_files:
+    #     print(name)
+
+    ''' Initialize the CodeEmbeddingSearch search tool for vector based operations '''
     search_tool = CodeEmbeddingSearch()
 
-    
+
+    ''' Initialize neo4j variables '''
     load_dotenv()
     NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
     NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
     NEO4J_URI = os.getenv("NEO4J_CONNECTION_URI")
     
-    neo_tool = Neo4jHandler(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
-    
-    neo_tool.verify_connection()
-    #Huzzah
 
-    neo_tool.PURGE()
+    ''' Initialize neo4j database handler '''
+    #neo_tool = Neo4jHandler(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
+    #neo_tool.verify_connection()
+
     
-    #Commented out to confirm neo4j connections
-    '''
-    # Generate and save embeddings
+    ''' Generate and save embeddings '''
     search_tool.generate_embeddings(asm_files)
-    search_tool.save_index()
+    # search_tool.save_index()
+    # search_tool.index = search_tool.load_index()
 
-    # Load the index and search for C code
-    #search_tool.index = search_tool.load_index()
-    asm_file_path = "asm_C/powers_loop.s"
+
+    ''' Filepath to file you wish to decompile '''
+    asm_file_path = "asm_C/hello_world.s"
+
+
 
     with open(asm_file_path, "r") as asm_file:
         input_asm_code = asm_file.read()
 
+    ''' perform vector search '''
     matched_c_code = search_tool.make_search(input_asm_code, c_files)
 
+    print("\n\nReturned C:\n\n")
     print("\n".join(matched_c_code))
-    print("Search completed.")
 
-    # Prepare input for a DeepSeek Coder or other downstream tasks
-    deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
+
+    ''' Prepare input for a DeepSeek Coder or other downstream tasks '''
+    # Only DeepSeek Handled Here
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-base"
+    deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-instruct"
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-instruct"
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
+
     tokenizer_chat = AutoTokenizer.from_pretrained(deepseek_model_path, trust_remote_code=True)
     model_chat = AutoModelForCausalLM.from_pretrained(
         deepseek_model_path,
@@ -138,11 +184,15 @@ if __name__ == "__main__":
         trust_remote_code=True,
     ).cuda()
 
+    #assemble files to format model can understand
+
     input_text = (
         "# Assembly Code:\n" + input_asm_code +
         "\n\n# C Code:\n" + "\n".join(matched_c_code) +
         "\n\n# Decompile the above Assembly code given the C code as context"
     )
+
+    input_text = "#write a single bubble sort algorith in python"
 
     # Tokenize and generate output
     inputs = tokenizer_chat(input_text, return_tensors="pt").to(model_chat.device)
@@ -151,5 +201,5 @@ if __name__ == "__main__":
     print("\n\n\nResponse:\n\n\n")
     print(tokenizer_chat.decode(outputs[0], skip_special_tokens=True))
 
-    '''
+
 
