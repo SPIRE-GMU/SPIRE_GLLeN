@@ -19,10 +19,11 @@ import argparse
 MODEL_PATH = "/home/spire2/LLM4Decompile/llm4decompile-22b-v2"
 
 
-origin_no_path = 'origin'
+origin_no_path = "origin"
 
-recompile_no_path = 'new_file'
+recompile_no_path = "new_file"
 optimization = ["O1", "O2", "O3"]
+
 
 def main():
     """
@@ -45,13 +46,18 @@ def main():
     tokenizer, model = load_model()
     for row in dataset:
         for opt in range(len(optimization)):
-            recompiled_file = 'new_file' + optimization[opt] + '.c'
-            original_file = 'origin' + optimization[opt] + '.c'
+            recompiled_file = "new_file" + optimization[opt] + ".c"
+            original_file = "origin" + optimization[opt] + ".c"
             try:
-                func0 = row['fname']
+                func0 = row["fname"]
                 # pprint.pp(row)
                 with open(original_file, "w") as f:
-                    f.write("#include <stdint.h>\n#include <stdio.h>\n" + row['real_deps'] + '\n' + row['func_def'])
+                    f.write(
+                        "#include <stdint.h>\n#include <stdio.h>\n"
+                        + row["real_deps"]
+                        + "\n"
+                        + row["func_def"]
+                    )
                 f.close()
                 #    row = 0
                 #    while row < 1:
@@ -70,64 +76,111 @@ def main():
                 # You can manually compile, run with IO, etc
                 #       row += 1
 
-
-                
-                asm_file = assemble(original_file, origin_no_path, func0, optimization[opt])
+                asm_file = assemble(
+                    original_file, origin_no_path, func0, optimization[opt]
+                )
 
                 decompiled_func = decompiler(asm_file, tokenizer, model)
 
                 with open(recompiled_file, "w") as d:
-                    d.write("#include <stdint.h>\n#include <stdio.h>\n" + row['real_deps'] + '\n' + decompiled_func)
+                    d.write(
+                        "#include <stdint.h>\n#include <stdio.h>\n"
+                        + row["real_deps"]
+                        + "\n"
+                        + decompiled_func
+                    )
                 d.close()
 
                 currently_a_success = True
 
-                    # Clear the terminal screen
+                # Clear the terminal screen
 
-                    # Display the ASCII art
-                
-                    # Get a list of files with .c or .o extensions in the current working directory
+                # Display the ASCII art
+
+                # Get a list of files with .c or .o extensions in the current working directory
 
             except:
-                print('This file sucks becuse exebench sucks')
+                print("This file sucks becuse exebench sucks")
                 currently_a_success = False
             try:
                 if currently_a_success:
                     if opt == 0:
-                        assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
-                        shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_1}.c')
-                        shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_1}.c')
+                        assemble(
+                            recompiled_file, recompile_no_path, func0, optimization[opt]
+                        )
+                        shutil.copy(
+                            original_file,
+                            f"red-team-success/{origin_no_path}{optimization[opt]}{success_count_1}.c",
+                        )
+                        shutil.copy(
+                            recompiled_file,
+                            f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_1}.c",
+                        )
 
                         success_count_1 += 1
                     elif opt == 1:
-                        assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
-                        shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_2}.c')
-                        shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_2}.c')
+                        assemble(
+                            recompiled_file, recompile_no_path, func0, optimization[opt]
+                        )
+                        shutil.copy(
+                            original_file,
+                            f"red-team-success/{origin_no_path}{optimization[opt]}{success_count_2}.c",
+                        )
+                        shutil.copy(
+                            recompiled_file,
+                            f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_2}.c",
+                        )
                         success_count_2 += 1
                     elif opt == 2:
-                        assemble(recompiled_file, recompile_no_path, func0, optimization[opt])
-                        shutil.copy(original_file, f'red-team-success/{origin_no_path}{optimization[opt]}{success_count_3}.c')
-                        shutil.copy(recompiled_file, f'red-team-success/{recompile_no_path}{optimization[opt]}{success_count_3}.c')
+                        assemble(
+                            recompiled_file, recompile_no_path, func0, optimization[opt]
+                        )
+                        shutil.copy(
+                            original_file,
+                            f"red-team-success/{origin_no_path}{optimization[opt]}{success_count_3}.c",
+                        )
+                        shutil.copy(
+                            recompiled_file,
+                            f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_3}.c",
+                        )
                         success_count_3 += 1
 
-                    else: 
+                    else:
                         pass
             except:
                 if opt == 0:
 
-                    shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_1}.c')
-                    shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_1}.c')
+                    shutil.copy(
+                        original_file,
+                        f"red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_1}.c",
+                    )
+                    shutil.copy(
+                        recompiled_file,
+                        f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_1}.c",
+                    )
                     garbage_file_count_1 += 1
                 elif opt == 1:
 
-                    shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_2}.c')
-                    shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_2}.c') 
-                    garbage_file_count_2 += 1 
+                    shutil.copy(
+                        original_file,
+                        f"red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_2}.c",
+                    )
+                    shutil.copy(
+                        recompiled_file,
+                        f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_2}.c",
+                    )
+                    garbage_file_count_2 += 1
                 elif opt == 2:
 
-                    shutil.copy(original_file, f'red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_3}.c')
-                    shutil.copy(recompiled_file, f'red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_3}.c')  
-                    garbage_file_count_3 += 1           
+                    shutil.copy(
+                        original_file,
+                        f"red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_3}.c",
+                    )
+                    shutil.copy(
+                        recompiled_file,
+                        f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_3}.c",
+                    )
+                    garbage_file_count_3 += 1
 
     # TODO recompiled_file
 
@@ -141,9 +194,7 @@ def assemble(name, name_no_path, function_name, optimization):
     # os.system(f"gcc -c {file_name} -o {obj_file_name} && objdump -d {obj_file_name} > {asm_file_name}")
     # os.system(f"gcc -c {file_name} -o {obj_file_name}")
 
-    compile_command = (
-        f"gcc -c {name} -o {obj_file_name} -{optimization} -lm"  # compile the code with GCC on Linux
-    )
+    compile_command = f"gcc -c {name} -o {obj_file_name} -{optimization} -lm"  # compile the code with GCC on Linux
     subprocess.run(compile_command, shell=True, check=True)
     compile_command = f"objdump -d {obj_file_name}> {s_file_name}"  # disassemble the binary file into assembly instructions
     subprocess.run(compile_command, shell=True, check=True)
@@ -200,7 +251,7 @@ def decompiler(file_name, tokenizer, model):
     accelerator = Accelerator()
 
     # Load the tokenizer and model
-    
+
     model = accelerator.prepare(model)
 
     # Read the assembly function
@@ -222,7 +273,7 @@ def decompiler(file_name, tokenizer, model):
 
     # Decode the generated output
     decompiled_function = tokenizer.decode(outputs[0][len(inputs["input_ids"][0]) : -1])
-    
+
     with torch.no_grad():
         torch.cuda.empty_cache()
     gc.collect()
@@ -234,7 +285,6 @@ def decompiler(file_name, tokenizer, model):
     # print(f"Original function:\n{original_function}")
 
     # Ask the user if they want to save the decompiled function to a file
-
 
     return decompiled_function
 

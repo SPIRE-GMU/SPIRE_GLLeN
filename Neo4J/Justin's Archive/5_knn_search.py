@@ -15,6 +15,7 @@ NEO4J_PASSWORD = "rootboot"  # update as needed
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 ###############################################################################
 # 1) Parse a .cfg File, unifying block1 => end
 ###############################################################################
@@ -73,7 +74,9 @@ def parse_cfg_for_knn(cfg_path):
                 current_lines = []
         elif "succs" in line_stripped:
             # e.g. ";; 2 succs { 3 7 }"
-            m_succ = re.match(r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped)
+            m_succ = re.match(
+                r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped
+            )
             if m_succ:
                 src = int(m_succ.group(1))
                 targets_str = m_succ.group(2).strip()
@@ -105,7 +108,7 @@ def parse_cfg_for_knn(cfg_path):
     # and if block2 exists, add edge (func->2)
 
     # check if block2 exists
-    block2_exists = (2 in blocks)
+    block2_exists = 2 in blocks
 
     # new edge: (func->2) if block2 exists
     if block2_exists:
@@ -124,23 +127,28 @@ def parse_cfg_for_knn(cfg_path):
 
     return node_list, edges, loops_count
 
+
 ###############################################################################
 # 2) Compute embedding
 ###############################################################################
 def compute_embedding_knn(nodes, edges, loops_count):
     return [len(nodes), len(edges), loops_count]
 
+
 ###############################################################################
 # 3) Load DB Embeddings
 ###############################################################################
 from neo4j import GraphDatabase
 
+
 def load_db_embeddings():
     with driver.session() as session:
-        res = session.run("""
+        res = session.run(
+            """
             MATCH (f:Function)
             RETURN f.cfg_id AS cfg_id, f.embedding AS embedding
-        """)
+        """
+        )
         data = []
         for r in res:
             cid = r["cfg_id"]
@@ -148,16 +156,19 @@ def load_db_embeddings():
             data.append((cid, emb))
         return data
 
+
 ###############################################################################
 # 4) KNN
 ###############################################################################
 from sklearn.metrics.pairwise import cosine_similarity
 
+
 def knn_search(new_emb, db_embs, top_k=3, use_cosine=True):
     import math
+
     query_vec = np.array(new_emb).reshape(1, -1)
     all_ids, all_vecs = [], []
-    for (cid, emb) in db_embs:
+    for cid, emb in db_embs:
         all_ids.append(cid)
         all_vecs.append(emb)
     all_vecs = np.array(all_vecs)
@@ -174,18 +185,23 @@ def knn_search(new_emb, db_embs, top_k=3, use_cosine=True):
         best = idx[:top_k]
         return [(all_ids[i], dist[i]) for i in best]
 
+
 ###############################################################################
 # (Optional) Code
 ###############################################################################
 def get_function_code(cfg_id):
     with driver.session() as session:
-        rec = session.run("""
+        rec = session.run(
+            """
             MATCH (f:Function {cfg_id: $cid})
             RETURN f.c_data AS cdata, f.code AS fcode
-        """, cid=cfg_id).single()
+        """,
+            cid=cfg_id,
+        ).single()
         if rec:
             return rec["cdata"], rec["fcode"]
         return None, None
+
 
 ###############################################################################
 # MAIN
@@ -217,7 +233,7 @@ def main():
     topk = 3
     results = knn_search(new_emb, db_embs, top_k=topk, use_cosine=True)
     print(f"\n[INFO] top {topk} results by Cosine Similarity:\n")
-    for (cid, score) in results:
+    for cid, score in results:
         print(f" - {cid}, similarity={score:.4f}")
         # optionally fetch code
         cd, fc = get_function_code(cid)
@@ -225,6 +241,7 @@ def main():
             print(f"   c_data length={len(cd)}")
         if fc:
             print(f"   function code length={len(fc)}")
+
 
 if __name__ == "__main__":
     main()

@@ -26,15 +26,13 @@ model.eval()
 # Connect to Neo4j
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 def get_codebert_embedding(code_str, max_len=512):
     """
     Given a code snippet (string), return a 768-d CodeBERT embedding as a Python list.
     """
     inputs = tokenizer(
-        code_str,
-        max_length=max_len,
-        truncation=True,
-        return_tensors='pt'
+        code_str, max_length=max_len, truncation=True, return_tensors="pt"
     )
     for k, v in inputs.items():
         inputs[k] = v.to(device)
@@ -44,8 +42,9 @@ def get_codebert_embedding(code_str, max_len=512):
         # For a RoBERTa-based model, the first token is <s>:
         # We'll take outputs.last_hidden_state[0,0,:] as the embedding
         cls_vec = outputs.last_hidden_state[0, 0, :]  # shape [768]
-    
+
     return cls_vec.cpu().numpy().tolist()
+
 
 def store_embedding_in_neo4j(function_name, embedding_list):
     """
@@ -60,13 +59,18 @@ def store_embedding_in_neo4j(function_name, embedding_list):
             RETURN f.function_name AS name
             """,
             fname=function_name,
-            emb=embedding_list
+            emb=embedding_list,
         )
         record = result.single()
         if record:
-            print(f"[INFO] Stored embedding for function_name='{record['name']}' in Neo4j.")
+            print(
+                f"[INFO] Stored embedding for function_name='{record['name']}' in Neo4j."
+            )
         else:
-            print(f"[WARN] No :Function node found in Neo4j with function_name='{function_name}'.")
+            print(
+                f"[WARN] No :Function node found in Neo4j with function_name='{function_name}'."
+            )
+
 
 def main():
     json_files = [f for f in os.listdir(JSON_DIR) if f.endswith(".json")]
@@ -78,7 +82,7 @@ def main():
         full_path = os.path.join(JSON_DIR, jf)
         with open(full_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         # Example JSON structure:
         # {
         #   "cfg_id": "...",
@@ -96,19 +100,19 @@ def main():
         if not function_name:
             print(f"[WARN] {jf} has no 'function_name'. Skipping.")
             continue
-        
+
         # Find the function node in "nodes" where block_num is null
         nodes = data.get("nodes", [])
         func_node = next((n for n in nodes if n.get("block_num") is None), None)
         if not func_node:
             print(f"[WARN] {jf} no node with block_num=null found. Skipping.")
             continue
-        
+
         code_str = func_node.get("code", "")
         if not code_str:
             print(f"[WARN] {jf} function node is missing 'code'. Skipping.")
             continue
-        
+
         # Compute CodeBERT embedding
         embedding = get_codebert_embedding(code_str)
 
@@ -117,6 +121,7 @@ def main():
 
     driver.close()
     print("[INFO] Done processing all JSON files.")
+
 
 if __name__ == "__main__":
     main()

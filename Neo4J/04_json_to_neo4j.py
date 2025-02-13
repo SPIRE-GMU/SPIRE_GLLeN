@@ -13,6 +13,7 @@ JSON_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/json_files"
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 def insert_one_cfg_into_neo4j(session, cfg_json):
     cfg_id = cfg_json["cfg_id"]
     function_name = cfg_json.get("function_name", None)
@@ -28,7 +29,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
         return
 
     func_id = function_node["id"]
-    func_label = function_node["label"]         # e.g. "Function: main"
+    func_label = function_node["label"]  # e.g. "Function: main"
     func_code = function_node.get("code", "")
     cfg_data = function_node.get("cfg_data", "")
     c_data = function_node.get("c_data", "")
@@ -55,7 +56,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
         func_code=func_code,
         cfg_data=cfg_data,
         c_data=c_data,
-        embedding=embedding
+        embedding=embedding,
     )
 
     # Create or MERGE the other nodes (BasicBlock or End)
@@ -63,7 +64,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
     for block in basic_blocks:
         block_id = block["id"]
         block_num = block["block_num"]
-        label = block["label"]       # e.g. "BB 2" or "End"
+        label = block["label"]  # e.g. "BB 2" or "End"
         code = block.get("code", "")
 
         if block_num == 1 and label == "End":
@@ -79,7 +80,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
                 block_id=block_id,
                 block_num=block_num,
                 label=label,
-                code=code
+                code=code,
             )
         else:
             # For normal basic blocks
@@ -94,7 +95,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
                 block_id=block_id,
                 block_num=block_num,
                 label=label,
-                code=code
+                code=code,
             )
 
     # Create or MERGE edges
@@ -107,8 +108,9 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
             MERGE (src)-[:NEXT]->(dst)
             """,
             src_id=src_id,
-            dst_id=dst_id
+            dst_id=dst_id,
         )
+
 
 def main():
     json_files = [f for f in os.listdir(JSON_DIRECTORY) if f.endswith(".json")]
@@ -124,6 +126,7 @@ def main():
             insert_one_cfg_into_neo4j(session, cfg_json)
 
     print("All CFG data has been successfully inserted into Neo4j.")
+
 
 if __name__ == "__main__":
     main()

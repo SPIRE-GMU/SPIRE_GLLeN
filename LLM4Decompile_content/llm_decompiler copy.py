@@ -81,9 +81,7 @@ def assemble(file_name, function_name):
     # os.system(f"gcc -c {file_name} -o {obj_file_name} && objdump -d {obj_file_name} > {asm_file_name}")
     # os.system(f"gcc -c {file_name} -o {obj_file_name}")
 
-    compile_command = (
-        f"gcc -c -o {obj_file_name} {file_name} -lm"  # compile the code with GCC on Linux
-    )
+    compile_command = f"gcc -c -o {obj_file_name} {file_name} -lm"  # compile the code with GCC on Linux
     subprocess.run(compile_command, shell=True, check=True)
     compile_command = f"objdump -d {obj_file_name}> {s_file_name}"  # disassemble the binary file into assembly instructions
     subprocess.run(compile_command, shell=True, check=True)

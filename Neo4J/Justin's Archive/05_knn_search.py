@@ -9,6 +9,7 @@ NEO4J_PASSWORD = "rootboot"  # adjust as needed
 GDS_GRAPH_NAME = "cfgGraph"
 EMBEDDING_PROPERTY = "fastRPEmb"
 
+
 class GDSFastRPKNN:
     def __init__(self, uri, user, pwd):
         self.driver = GraphDatabase.driver(uri, auth=(user, pwd))
@@ -39,13 +40,19 @@ class GDSFastRPKNN:
         drop_query_2 = f"CALL gds.beta.graph.drop('{GDS_GRAPH_NAME}') YIELD graphName"
         try:
             self._run_query(drop_query_1)
-            print(f"[INFO] Dropped in-memory graph '{GDS_GRAPH_NAME}' using gds.graph.drop")
+            print(
+                f"[INFO] Dropped in-memory graph '{GDS_GRAPH_NAME}' using gds.graph.drop"
+            )
         except:
             try:
                 self._run_query(drop_query_2)
-                print(f"[INFO] Dropped in-memory graph '{GDS_GRAPH_NAME}' using gds.beta.graph.drop")
+                print(
+                    f"[INFO] Dropped in-memory graph '{GDS_GRAPH_NAME}' using gds.beta.graph.drop"
+                )
             except:
-                print(f"[WARN] Could not drop in-memory graph '{GDS_GRAPH_NAME}', ignoring.")
+                print(
+                    f"[WARN] Could not drop in-memory graph '{GDS_GRAPH_NAME}', ignoring."
+                )
 
     def project_inmem_graph(self):
         """
@@ -125,6 +132,7 @@ class GDSFastRPKNN:
         for r in rows:
             print(f"   {r['nId']} -> {r['mId']} [score={r['score']:.4f}]")
 
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python 05_knn_search.py <cfgFileArg>")
@@ -152,6 +160,7 @@ def main():
 
     finally:
         gds_tool.close()
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 import os
 from datasets import load_dataset
 
+
 def main():
     # Load the dataset
     dataset = load_dataset("jordiae/exebench", split="test_synth")
@@ -10,13 +11,16 @@ def main():
     os.makedirs(folder, exist_ok=True)
 
     # Open files to store function summaries and missing information
-    with open(os.path.join(folder, "functionDataBase.txt"), "w") as fname_file, \
-         open(os.path.join(folder, "missingData.txt"), "w") as missing_file:
+    with open(os.path.join(folder, "functionDataBase.txt"), "w") as fname_file, open(
+        os.path.join(folder, "missingData.txt"), "w"
+    ) as missing_file:
 
         for row in dataset:
             fname = row["fname"]
             func_def = row["func_def"]
-            asm_code = row.get("asm", {}).get("code", [None])[0]  # Use .get() for safe access
+            asm_code = row.get("asm", {}).get("code", [None])[
+                0
+            ]  # Use .get() for safe access
 
             # Initialize the missing list at te start of each iteration
             missing = []
@@ -56,13 +60,19 @@ def main():
 
             # Write metadata to functionDataBase.txt
             fname_file.write(f"Function Name: {fname}\n")
-            fname_file.write(f"  C file size: {c_size} bytes, Lines of code: {c_line_count}\n")
-            fname_file.write(f"  ASM file size: {asm_size} bytes, Lines of code: {asm_line_count}\n")
-            fname_file.write("  Additional info: C function and assembly code are present.\n")
+            fname_file.write(
+                f"  C file size: {c_size} bytes, Lines of code: {c_line_count}\n"
+            )
+            fname_file.write(
+                f"  ASM file size: {asm_size} bytes, Lines of code: {asm_line_count}\n"
+            )
+            fname_file.write(
+                "  Additional info: C function and assembly code are present.\n"
+            )
             fname_file.write("*****\n")
 
     print("Files have been written successfully into the DataBase folder.")
 
+
 if __name__ == "__main__":
     main()
-

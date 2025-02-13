@@ -13,6 +13,7 @@ JSON_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/json_files"
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 def insert_one_cfg_into_neo4j(session, cfg_json):
     """
     Insert a single CFG (parsed from one JSON file) into Neo4j.
@@ -36,8 +37,8 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
         print(f"[WARNING] No function node found for cfg_id={cfg_id}; skipping.")
         return
 
-    func_id = function_node["id"]             # unique ID
-    func_label = function_node["label"]       # e.g. "Function: main"
+    func_id = function_node["id"]  # unique ID
+    func_label = function_node["label"]  # e.g. "Function: main"
     func_code = function_node.get("code", "")
     cfg_data = function_node.get("cfg_data", "")
     c_data = function_node.get("c_data", "")
@@ -63,7 +64,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
         func_code=func_code,
         cfg_data=cfg_data,
         c_data=c_data,
-        embedding=embedding
+        embedding=embedding,
     )
 
     # 2) Create or merge all the other nodes
@@ -90,7 +91,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
                 block_id=block_id,
                 block_num=block_num,
                 label=label,
-                code=code
+                code=code,
             )
         else:
             # A normal basic block
@@ -104,7 +105,7 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
                 block_id=block_id,
                 block_num=block_num,
                 label=label,
-                code=code
+                code=code,
             )
 
     # 3) Create or merge edges using :NEXT
@@ -117,8 +118,9 @@ def insert_one_cfg_into_neo4j(session, cfg_json):
             MERGE (src)-[:NEXT]->(dst)
             """,
             src_id=src_id,
-            dst_id=dst_id
+            dst_id=dst_id,
         )
+
 
 def main():
     # 1) Collect all JSON files
@@ -137,6 +139,7 @@ def main():
             insert_one_cfg_into_neo4j(session, cfg_json)
 
     print("All CFG data has been successfully inserted into Neo4j.")
+
 
 if __name__ == "__main__":
     main()

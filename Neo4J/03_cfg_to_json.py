@@ -17,6 +17,7 @@ C_FILES_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/c_files"
 OUTPUT_JSON_DIR = "/home/spire2/SPIRE_GLLeN/Neo4J/json_files"
 os.makedirs(OUTPUT_JSON_DIR, exist_ok=True)
 
+
 ###############################################################################
 # Simple Embedding Function
 ###############################################################################
@@ -28,6 +29,7 @@ def compute_embedding(nodes, edges, loops_count):
     We return [num_nodes, num_edges, loops_count].
     """
     return [len(nodes), len(edges), loops_count]
+
 
 ###############################################################################
 # Helper: Read matching .c file
@@ -63,6 +65,7 @@ def read_c_code_for_cfg(cfg_filename):
             return ""
     else:
         return ""
+
 
 ###############################################################################
 # Parse a Single .cfg File
@@ -104,7 +107,7 @@ def parse_cfg_file(file_path):
         "loops_count": <int>
       }
     """
-    with open(file_path, 'r', encoding="utf-8", errors="replace") as f:
+    with open(file_path, "r", encoding="utf-8", errors="replace") as f:
         cfg_lines = f.readlines()
     cfg_entire_text = "".join(cfg_lines)
 
@@ -151,12 +154,14 @@ def parse_cfg_file(file_path):
                 unique_block_id = block_id_map[current_block_id]
                 block_label = f"BB {current_block_id}"
                 block_code_str = "\n".join(current_block_code)
-                nodes.append({
-                    "id": unique_block_id,
-                    "label": block_label,
-                    "block_num": current_block_id,
-                    "code": block_code_str
-                })
+                nodes.append(
+                    {
+                        "id": unique_block_id,
+                        "label": block_label,
+                        "block_num": current_block_id,
+                        "code": block_code_str,
+                    }
+                )
 
             match_block = re.match(r"<bb (\d+)>", line_stripped)
             if match_block:
@@ -174,7 +179,9 @@ def parse_cfg_file(file_path):
                 current_block_code = []
 
         elif "succs" in line_stripped:
-            match_succs = re.match(r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped)
+            match_succs = re.match(
+                r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped
+            )
             if match_succs:
                 src_block_num = int(match_succs.group(1))
                 if src_block_num in block_id_map:
@@ -197,7 +204,9 @@ def parse_cfg_file(file_path):
                         end_node_used = True
                     else:
                         if succ_block_num not in block_id_map:
-                            block_id_map[succ_block_num] = f"{prefix}-bb-{succ_block_num}"
+                            block_id_map[succ_block_num] = (
+                                f"{prefix}-bb-{succ_block_num}"
+                            )
                         succ_block_uuid = block_id_map[succ_block_num]
                         edges.append({"from": src_block_uuid, "to": succ_block_uuid})
 
@@ -211,37 +220,36 @@ def parse_cfg_file(file_path):
         unique_block_id = block_id_map[current_block_id]
         block_label = f"BB {current_block_id}"
         block_code_str = "\n".join(current_block_code)
-        nodes.append({
-            "id": unique_block_id,
-            "label": block_label,
-            "block_num": current_block_id,
-            "code": block_code_str
-        })
+        nodes.append(
+            {
+                "id": unique_block_id,
+                "label": block_label,
+                "block_num": current_block_id,
+                "code": block_code_str,
+            }
+        )
 
     c_file_content = read_c_code_for_cfg(cfg_basename)
     function_label = f"Function: {function_name}"
     func_node_id = f"{prefix}-func"
-    nodes.append({
-        "id": func_node_id,
-        "label": function_label,
-        "function_name": function_name,
-        "cfg_filename": cfg_basename,
-        "block_num": None,
-        "code": "\n".join(function_code_accumulator),
-        "cfg_data": cfg_entire_text,
-        "c_data": c_file_content
-    })
+    nodes.append(
+        {
+            "id": func_node_id,
+            "label": function_label,
+            "function_name": function_name,
+            "cfg_filename": cfg_basename,
+            "block_num": None,
+            "code": "\n".join(function_code_accumulator),
+            "cfg_data": cfg_entire_text,
+            "c_data": c_file_content,
+        }
+    )
 
     if 2 in block_id_map:
         edges.append({"from": func_node_id, "to": block_id_map[2]})
 
     if end_node_used:
-        nodes.append({
-            "id": end_node_id,
-            "label": "End",
-            "block_num": 1,
-            "code": ""
-        })
+        nodes.append({"id": end_node_id, "label": "End", "block_num": 1, "code": ""})
 
     cfg_id = f"{function_name}-{prefix}"
 
@@ -251,8 +259,9 @@ def parse_cfg_file(file_path):
         "cfg_filename": cfg_basename,
         "nodes": nodes,
         "edges": edges,
-        "loops_count": loops_count
+        "loops_count": loops_count,
     }
+
 
 ###############################################################################
 # Convert CFG -> JSON
@@ -273,13 +282,15 @@ def process_single_cfg_file(cfg_file_path):
         "cfg_filename": parsed_data["cfg_filename"],
         "nodes": nodes,
         "edges": edges,
-        "embedding": embedding
+        "embedding": embedding,
     }
 
     # Check if the function has more than 50 nodes
     node_count = len(nodes)
     if node_count > 50:
-        print(f"[ALERT] Large function detected in {cfg_file_path} with {node_count} nodes.")
+        print(
+            f"[ALERT] Large function detected in {cfg_file_path} with {node_count} nodes."
+        )
 
     base_name = os.path.splitext(os.path.basename(cfg_file_path))[0]
     output_json_path = os.path.join(OUTPUT_JSON_DIR, f"{base_name}.json")
@@ -287,7 +298,8 @@ def process_single_cfg_file(cfg_file_path):
     with open(output_json_path, "w", encoding="utf-8") as f:
         json.dump(final_dict, f, indent=2)
 
-    #print(f"[INFO] Created JSON: {output_json_path}")
+    # print(f"[INFO] Created JSON: {output_json_path}")
+
 
 def main():
     cfg_files = [f for f in os.listdir(CFG_DIRECTORY) if f.endswith(".cfg")]
@@ -298,6 +310,7 @@ def main():
     for cfg_file in cfg_files:
         cfg_path = os.path.join(CFG_DIRECTORY, cfg_file)
         process_single_cfg_file(cfg_path)
+
 
 if __name__ == "__main__":
     main()

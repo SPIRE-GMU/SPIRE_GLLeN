@@ -6,22 +6,23 @@ import os
 
 from ghidra.program.model.block import BasicBlockModel
 from ghidra.program.model.block import CodeBlockIterator
-from ghidra.program.model.block import CodeBlockReference 
-from ghidra.program.model.block import CodeBlockReferenceIterator 
-from ghidra.program.model.listing import CodeUnitIterator;
-from ghidra.program.model.listing import Function;
-from ghidra.program.model.listing import FunctionManager;
-from ghidra.program.model.listing import Listing;
+from ghidra.program.model.block import CodeBlockReference
+from ghidra.program.model.block import CodeBlockReferenceIterator
+from ghidra.program.model.listing import CodeUnitIterator
+from ghidra.program.model.listing import Function
+from ghidra.program.model.listing import FunctionManager
+from ghidra.program.model.listing import Listing
 from ghidra.program.database.code import InstructionDB
 
+
 def addBB(bb, G, bb_func_map):
-    listing = currentProgram.getListing();
+    listing = currentProgram.getListing()
     # iter over the instructions
     codeUnits = listing.getCodeUnits(bb, True)
     lastInstStart = 0x0
     lastInstEnd = 0x0
 
-    bb_tbl_rows = ''
+    bb_tbl_rows = ""
     i = 0
     while codeUnits.hasNext():
         codeUnit = codeUnits.next()
@@ -35,30 +36,39 @@ def addBB(bb, G, bb_func_map):
         lastInstStart = codeUnit.getAddress().getOffset()
         lastInstEnd = lastInstStart + codeUnit.getLength()
 
-        bb_tbl_rows += ('''
+        bb_tbl_rows += """
       <TR>
         <TD PORT="insn_%x" ALIGN="RIGHT"><FONT FACE="monospace">%x: </FONT></TD>
         <TD ALIGN="LEFT"><FONT FACE="monospace">%s</FONT></TD>
         <TD>&nbsp;&nbsp;&nbsp;</TD> // for spacing
-      </TR>''' % (lastInstStart, lastInstStart, str(codeUnit)))
-        i += 1 # Bump Counter
+      </TR>""" % (
+            lastInstStart,
+            lastInstStart,
+            str(codeUnit),
+        )
+        i += 1  # Bump Counter
 
-    bb_tbl_node = ('''  bb_%x [shape=plaintext label=<
+    bb_tbl_node = """  bb_%x [shape=plaintext label=<
     <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">%s
-    </TABLE>>];\n''' % (bb.getMinAddress().getOffset(), bb_tbl_rows))
+    </TABLE>>];\n""" % (
+        bb.getMinAddress().getOffset(),
+        bb_tbl_rows,
+    )
 
-    bb_func_map[bb.getMinAddress().getOffset()] = \
-        'bb_%x:insn_%x' % (bb.getMinAddress().getOffset(), firstInstStart)
+    bb_func_map[bb.getMinAddress().getOffset()] = "bb_%x:insn_%x" % (
+        bb.getMinAddress().getOffset(),
+        firstInstStart,
+    )
 
     # add node
     G += bb_tbl_node
 
     return G
 
+
 def addSuccessors(bb_func_set, bb_func_map, G):
 
-
-    listing = currentProgram.getListing();
+    listing = currentProgram.getListing()
     for bb in bb_func_set:
         codeUnits = listing.getCodeUnits(bb, True)
         lastInstStart = 0x0
@@ -99,25 +109,31 @@ def addSuccessors(bb_func_set, bb_func_map, G):
             currBBAddr = bb.getMinAddress().getOffset()
             flowType = sucBBRef.getFlowType()
 
-            if (flowType.isJump() and flowType.isUnConditional()) or flowType.isFallthrough():
-                edgeAttrs = 'color=gray style=dashed'
+            if (
+                flowType.isJump() and flowType.isUnConditional()
+            ) or flowType.isFallthrough():
+                edgeAttrs = "color=gray style=dashed"
             elif flowType.isCall() and flowType.isUnConditional():
-                edgeAttrs = 'color=cyan4 style=dashed'
+                edgeAttrs = "color=cyan4 style=dashed"
             elif flowType.isJump() and flowType.isConditional():
-                edgeAttrs = 'color=gray style=solid'
+                edgeAttrs = "color=gray style=solid"
             elif flowType.isCall() and flowType.isConditional():
-                edgeAttrs = 'color=cyan4 style=solid'
+                edgeAttrs = "color=cyan4 style=solid"
             else:
-                edgeAttrs = 'color=gray style=dotted'
+                edgeAttrs = "color=gray style=dotted"
 
             edgeAttrs += ' tooltip="%s"' % str(flowType)
-            G += (('  bb_%x:insn_%x -> %s [%s];\n') \
-                    % (currBBAddr, currInsnAddr, bb_func_map[sucOffset], 
-                       edgeAttrs))
+            G += ("  bb_%x:insn_%x -> %s [%s];\n") % (
+                currBBAddr,
+                currInsnAddr,
+                bb_func_map[sucOffset],
+                edgeAttrs,
+            )
 
             sucSet.add(sucOffset)
 
     return G
+
 
 def dumpBlocks():
     bbModel = BasicBlockModel(currentProgram)
@@ -136,7 +152,8 @@ def dumpBlocks():
         if func_va in funcs_set:
             continue
 
-        G = ('''digraph "func 0x%x" {
+        G = (
+            """digraph "func 0x%x" {
   newrank=true;
   // Flow Type Legend
   subgraph cluster_01 { 
@@ -163,16 +180,17 @@ def dumpBlocks():
     key:i4:e -> key2:i4:w [color=cyan4];
     key:i5:e -> key2:i5:w [color=gray style=dotted];
   }
-''' % func_va)
+"""
+            % func_va
+        )
 
         funcs_set.add(func_va)
-        codeBlockIterator = bbModel.getCodeBlocksContaining(func.getBody(), monitor);
-
+        codeBlockIterator = bbModel.getCodeBlocksContaining(func.getBody(), monitor)
 
         # iter over the basic blocks
         bb_func_map = dict()
         bb_func_set = set()
-        while codeBlockIterator.hasNext(): 
+        while codeBlockIterator.hasNext():
             bb = codeBlockIterator.next()
             bb_set.add(bb.getMinAddress().getOffset())
             bb_func_set.add(bb)
@@ -180,11 +198,11 @@ def dumpBlocks():
 
         G = addSuccessors(bb_func_set, bb_func_map, G)
 
-        G += '}'
+        G += "}"
 
-        with open('/tmp/cfg/%s.dot' % func.getName(), 'w') as dot_output:
+        with open("/tmp/cfg/%s.dot" % func.getName(), "w") as dot_output:
             dot_output.write(G)
-    
+
 
 if __name__ == "__main__":
     dumpBlocks()

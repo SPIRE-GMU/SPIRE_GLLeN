@@ -17,7 +17,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Neo4j connection details
 NEO4J_URI = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "rootboot"  
+NEO4J_PASSWORD = "rootboot"
 
 # If you want to optionally store the generated JSON
 OUTPUT_JSON_DIR = "/home/spire2/SPIRE_GLLeN/Neo4J/temp_files"
@@ -42,6 +42,7 @@ print("[INFO] CodeBERT loaded.")
 ###############################################################################
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 ###############################################################################
 # SIMPLE EMBEDDING FUNCTION (Structural)
 ###############################################################################
@@ -52,10 +53,13 @@ def compute_structural_embedding(nodes, edges, loops_count):
     """
     return [len(nodes), len(edges), loops_count]
 
+
 ###############################################################################
 # HELPER: READ .c FILE FOR A GIVEN .CFG
 ###############################################################################
-def read_c_code_for_cfg(cfg_filename, c_files_dir="/home/spire2/SPIRE_GLLeN/Neo4J/c_files"):
+def read_c_code_for_cfg(
+    cfg_filename, c_files_dir="/home/spire2/SPIRE_GLLeN/Neo4J/c_files"
+):
     """
     If your .cfg is 'foo.c.cfg', we try to read 'foo.c' from c_files_dir
     Return the entire .c file content, or empty string if not found.
@@ -78,11 +82,12 @@ def read_c_code_for_cfg(cfg_filename, c_files_dir="/home/spire2/SPIRE_GLLeN/Neo4
     else:
         return ""
 
+
 ###############################################################################
 # PARSE A SINGLE .CFG FILE => Return a dictionary with function_name, nodes, etc.
 ###############################################################################
 def parse_cfg_file(cfg_file_path):
-    with open(cfg_file_path, 'r', encoding="utf-8", errors="replace") as f:
+    with open(cfg_file_path, "r", encoding="utf-8", errors="replace") as f:
         cfg_lines = f.readlines()
     cfg_entire_text = "".join(cfg_lines)
 
@@ -131,12 +136,14 @@ def parse_cfg_file(cfg_file_path):
                 unique_block_id = block_id_map[current_block_id]
                 block_label = f"BB {current_block_id}"
                 block_code_str = "\n".join(current_block_code)
-                nodes.append({
-                    "id": unique_block_id,
-                    "label": block_label,
-                    "block_num": current_block_id,
-                    "code": block_code_str
-                })
+                nodes.append(
+                    {
+                        "id": unique_block_id,
+                        "label": block_label,
+                        "block_num": current_block_id,
+                        "code": block_code_str,
+                    }
+                )
             match_bb = re.match(r"<bb (\d+)>", line_stripped)
             if match_bb:
                 block_num = int(match_bb.group(1))
@@ -153,7 +160,9 @@ def parse_cfg_file(cfg_file_path):
                 current_block_code = []
 
         elif "succs" in line_stripped:
-            m_succs = re.match(r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped)
+            m_succs = re.match(
+                r";;\s*(\d+)\s+succs\s+\{\s*([\d\s]+)\s*\}", line_stripped
+            )
             if m_succs:
                 src_block_num = int(m_succs.group(1))
                 if src_block_num in block_id_map:
@@ -191,12 +200,14 @@ def parse_cfg_file(cfg_file_path):
         unique_block_id = block_id_map[current_block_id]
         block_label = f"BB {current_block_id}"
         block_code_str = "\n".join(current_block_code)
-        nodes.append({
-            "id": unique_block_id,
-            "label": block_label,
-            "block_num": current_block_id,
-            "code": block_code_str
-        })
+        nodes.append(
+            {
+                "id": unique_block_id,
+                "label": block_label,
+                "block_num": current_block_id,
+                "code": block_code_str,
+            }
+        )
 
     # read the .c file content
     c_file_content = read_c_code_for_cfg(cfg_basename)
@@ -204,16 +215,18 @@ def parse_cfg_file(cfg_file_path):
     func_node_id = f"{prefix}-func"
 
     # add the function node
-    nodes.append({
-        "id": func_node_id,
-        "label": function_label,
-        "function_name": function_name,
-        "cfg_filename": cfg_basename,
-        "block_num": None,
-        "code": "\n".join(function_code_accumulator),
-        "cfg_data": cfg_entire_text,
-        "c_data": c_file_content
-    })
+    nodes.append(
+        {
+            "id": func_node_id,
+            "label": function_label,
+            "function_name": function_name,
+            "cfg_filename": cfg_basename,
+            "block_num": None,
+            "code": "\n".join(function_code_accumulator),
+            "cfg_data": cfg_entire_text,
+            "c_data": c_file_content,
+        }
+    )
 
     # if block2 exists, link function node to it
     if 2 in block_id_map:
@@ -221,12 +234,7 @@ def parse_cfg_file(cfg_file_path):
 
     # if end node used, add it
     if end_node_used:
-        nodes.append({
-            "id": end_node_id,
-            "label": "End",
-            "block_num": 1,
-            "code": ""
-        })
+        nodes.append({"id": end_node_id, "label": "End", "block_num": 1, "code": ""})
 
     cfg_id = f"{function_name}-{prefix}"
 
@@ -236,9 +244,10 @@ def parse_cfg_file(cfg_file_path):
         "cfg_filename": cfg_basename,
         "nodes": nodes,
         "edges": edges,
-        "loops_count": loops_count
+        "loops_count": loops_count,
     }
     return parsed_data
+
 
 ###############################################################################
 # CodeBERT EMBEDDING
@@ -248,13 +257,17 @@ def get_codebert_embedding(code_str, max_len=512):
     Generate a 768-dim embedding from the CodeBERT model for the given code string.
     """
     from transformers import RobertaTokenizer, RobertaModel
-    inputs = tokenizer(code_str, max_length=max_len, truncation=True, return_tensors='pt')
+
+    inputs = tokenizer(
+        code_str, max_length=max_len, truncation=True, return_tensors="pt"
+    )
     for k, v in inputs.items():
         inputs[k] = v.to(device)
     with torch.no_grad():
         outputs = model(**inputs)
         cls_vec = outputs.last_hidden_state[0, 0, :]
     return cls_vec.cpu().numpy()
+
 
 ###############################################################################
 # LOAD DB EMBEDDINGS & KNN SEARCH
@@ -265,17 +278,20 @@ def load_db_embeddings():
     Return list of (function_name, np.array of shape [768])
     """
     with driver.session() as session:
-        result = session.run("""
+        result = session.run(
+            """
             MATCH (f:Function)
             WHERE f.codebertEmbedding IS NOT NULL
             RETURN f.function_name AS fname, f.codebertEmbedding AS emb
-        """)
+        """
+        )
         data = []
         for rec in result:
             fname = rec["fname"]
             emb = rec["emb"]  # a list of floats
             data.append((fname, np.array(emb)))  # convert to np array
     return data
+
 
 def compute_knn(new_vec, db_data, top_k=3):
     """
@@ -284,10 +300,11 @@ def compute_knn(new_vec, db_data, top_k=3):
     Return top_k matches by descending cosine similarity
     """
     from sklearn.metrics.pairwise import cosine_similarity
+
     new_vec = new_vec.reshape(1, -1)
     names = []
     all_vecs = []
-    for (fname, e) in db_data:
+    for fname, e in db_data:
         names.append(fname)
         all_vecs.append(e)
     all_vecs = np.vstack(all_vecs)  # shape [N, 768]
@@ -299,6 +316,7 @@ def compute_knn(new_vec, db_data, top_k=3):
     for i in top_idx:
         results.append((names[i], sims[i]))
     return results
+
 
 ###############################################################################
 # MAIN
@@ -320,13 +338,17 @@ def main():
     base_name = os.path.splitext(os.path.basename(cfg_file_path))[0]
     output_json_path = os.path.join(OUTPUT_JSON_DIR, base_name + ".json")
     with open(output_json_path, "w", encoding="utf-8") as f:
-        json.dump({
-            "cfg_id": parsed["cfg_id"],
-            "function_name": parsed["function_name"],
-            "nodes": parsed["nodes"],
-            "edges": parsed["edges"],
-            "loops_count": parsed["loops_count"]
-        }, f, indent=2)
+        json.dump(
+            {
+                "cfg_id": parsed["cfg_id"],
+                "function_name": parsed["function_name"],
+                "nodes": parsed["nodes"],
+                "edges": parsed["edges"],
+                "loops_count": parsed["loops_count"],
+            },
+            f,
+            indent=2,
+        )
     print(f"[INFO] Created JSON: {output_json_path}")
 
     # 3) Find the function node => block_num=null => code
@@ -358,11 +380,12 @@ def main():
 
     # 7) Print results
     print("\n[RESULT] Top 3 matches by similarity:")
-    for (fname, score) in top_matches:
+    for fname, score in top_matches:
         print(f" - {fname}: similarity={score:.4f}")
 
     driver.close()
     print("[INFO] Done.")
+
 
 if __name__ == "__main__":
     main()

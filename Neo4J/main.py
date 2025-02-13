@@ -2,6 +2,7 @@ import networkx as nx
 import py2neo
 from py2neo import Graph
 
+
 def parse_cfg(cfg_file):
     """Parses a CFG file and extracts nodes and edges.
 
@@ -11,10 +12,10 @@ def parse_cfg(cfg_file):
     Returns:
         A tuple of nodes and edges.
     """
-    
+
     nodes = []
     edges = []
-    with open(cfg_file, 'r') as f:
+    with open(cfg_file, "r") as f:
         for line in f:
             # Adapt parsing logic based on your specific CFG format
             # ...
@@ -26,6 +27,7 @@ def parse_cfg(cfg_file):
                 edges.append((source, target, {"type": edge_type}))
 
     return nodes, edges
+
 
 def create_neo4j_graph(nodes, edges):
     """Creates a NetworkX graph from nodes and edges.
@@ -43,6 +45,7 @@ def create_neo4j_graph(nodes, edges):
     graph.add_edges_from(edges)
     return graph
 
+
 def import_to_neo4j(graph, uri, auth):
     """Imports a NetworkX graph into a Neo4j database.
 
@@ -57,14 +60,16 @@ def import_to_neo4j(graph, uri, auth):
     # Import nodes
     neo4j_graph.run(
         "UNWIND $nodes AS node CREATE (n:Node {id: node.id, label: node.label});",
-        nodes=list(graph.nodes(data=True))
+        nodes=list(graph.nodes(data=True)),
     )
 
     # Import edges
     neo4j_graph.run(
         "UNWIND $edges AS edge MATCH (n1:Node {id: edge.source}), (n2:Node {id: edge.target}) CREATE (n1)-[:EDGE {type: edge.type}]->(n2);",
-        edges=list(graph.edges(data=True))
+        edges=list(graph.edges(data=True)),
     )
+
+
 def generate_cypher_script(graph):
     """Generates a Cypher script to import the graph into Neo4j.
 
@@ -77,12 +82,16 @@ def generate_cypher_script(graph):
 
     cypher_script = "CREATE "
     for node_id, node_data in graph.nodes(data=True):
-        cypher_script += f"(n{node_id}:Node {{id: '{node_id}', label: '{node_data['label']}'}}),"
+        cypher_script += (
+            f"(n{node_id}:Node {{id: '{node_id}', label: '{node_data['label']}'}}),"
+        )
 
     cypher_script = cypher_script[:-1] + "\n"
 
     for source, target, edge_data in graph.edges(data=True):
-        cypher_script += f"(n{source})-[:EDGE {{type: '{edge_data['type']}'}}]->(n{target}),\n"
+        cypher_script += (
+            f"(n{source})-[:EDGE {{type: '{edge_data['type']}'}}]->(n{target}),\n"
+        )
 
     cypher_script = cypher_script[:-2] + ";"
 
@@ -98,8 +107,7 @@ if __name__ == "__main__":
 
     cypher_script = generate_cypher_script(graph)
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         f.write(cypher_script)
 
     print(f"Cypher script generated: {output_file}")
-

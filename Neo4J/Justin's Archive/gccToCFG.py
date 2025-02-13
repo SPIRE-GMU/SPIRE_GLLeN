@@ -18,6 +18,7 @@ asm_file_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/asm_files"
 os.makedirs(cfg_files_dir, exist_ok=True)
 os.makedirs(c_badfiles_dir, exist_ok=True)
 
+
 def generate_cfg(c_file_path, output_dir, bad_files_dir):
     # Ensure the input file exists
     if not os.path.isfile(c_file_path):
@@ -31,17 +32,19 @@ def generate_cfg(c_file_path, output_dir, bad_files_dir):
     with tempfile.TemporaryDirectory() as temp_dir:
         # GCC command to generate the CFG dump without linking
         gcc_command = [
-            "gcc",  # Adjusted to use gcc 11.4.0 for ubuntu 
+            "gcc",  # Adjusted to use gcc 11.4.0 for ubuntu
             "-fdump-tree-all-graph",
             "-c",  # Compile only, do not link (suitable for files without main)
             c_file_path,
             "-o",
-            os.path.join(temp_dir, f"{filename}.out")
+            os.path.join(temp_dir, f"{filename}.out"),
         ]
 
         try:
             # Run the GCC command to create the CFG
-            result = subprocess.run(gcc_command, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                gcc_command, check=True, capture_output=True, text=True
+            )
             logger.info(f"GCC Output: {result.stdout}")
             logger.info(f"GCC Error (if any): {result.stderr}")
 
@@ -61,20 +64,30 @@ def generate_cfg(c_file_path, output_dir, bad_files_dir):
                 # Send the CFG to Neo4j (placeholder, uncomment if applicable)
                 # send_cfg_to_neo4j(cfg_output_path)
             else:
-                logger.error(f"CFG file was not generated as expected. Moving '{c_file_path}' to bad files directory.")
-                shutil.move(c_file_path, os.path.join(bad_files_dir, os.path.basename(c_file_path)))
+                logger.error(
+                    f"CFG file was not generated as expected. Moving '{c_file_path}' to bad files directory."
+                )
+                shutil.move(
+                    c_file_path,
+                    os.path.join(bad_files_dir, os.path.basename(c_file_path)),
+                )
 
         except subprocess.CalledProcessError as e:
             logger.error(f"GCC failed with return code {e.returncode}")
             logger.error(f"GCC Output: {e.stdout}")
             logger.error(f"GCC Error: {e.stderr}")
             # Move the problematic C file to the bad files directory
-            shutil.move(c_file_path, os.path.join(bad_files_dir, os.path.basename(c_file_path)))
+            shutil.move(
+                c_file_path, os.path.join(bad_files_dir, os.path.basename(c_file_path))
+            )
 
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             # Move the problematic C file to the bad files directory
-            shutil.move(c_file_path, os.path.join(bad_files_dir, os.path.basename(c_file_path)))
+            shutil.move(
+                c_file_path, os.path.join(bad_files_dir, os.path.basename(c_file_path))
+            )
+
 
 # Loop through all .c files in the c_files_dir and generate CFGs
 for c_file in os.listdir(c_files_dir):
@@ -83,4 +96,3 @@ for c_file in os.listdir(c_files_dir):
         generate_cfg(c_file_path, cfg_files_dir, c_badfiles_dir)
 
 print("CFG generation process completed.")
-
