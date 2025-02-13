@@ -10,7 +10,12 @@ jump_errors = 0
 import_errors = 0
 misc_errors = 0
 compile_command = [
-        "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
+    "gcc",
+    "-c",
+    name,
+    "-o",
+    "testing",
+    "-lm",  # compile the code with GCC on Linux
 ]
 while file_num < 1834:
     error_found = False
@@ -30,7 +35,7 @@ while file_num < 1834:
         elif "expected identifier or ‘(’" in test.stderr:
             jump_errors += 1
             error_found = True
-        
+
         if "unknown type" in test.stderr:
             import_errors += 1
             error_found = True
@@ -40,16 +45,19 @@ while file_num < 1834:
         elif "undefined type" in test.stderr:
             import_errors += 1
             error_found = True
-        
+
         if not error_found:
             misc_errors += 1
 
-
-
-        file_num +=1
+        file_num += 1
         name = "new_fileO3" + str(file_num) + ".c"
         compile_command = [
-            "gcc", '-c', name, '-o', 'testing', "-lm"  # compile the code with GCC on Linux
+            "gcc",
+            "-c",
+            name,
+            "-o",
+            "testing",
+            "-lm",  # compile the code with GCC on Linux
         ]
     except:
         print(1)
@@ -57,6 +65,6 @@ while file_num < 1834:
 
 print("import errors: ", import_errors)
 
-print('jump errors: ', jump_errors)
+print("jump errors: ", jump_errors)
 
-print('others: ', misc_errors)
+print("others: ", misc_errors)

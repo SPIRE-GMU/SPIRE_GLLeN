@@ -39,7 +39,7 @@ def evaluate_func(params):
         params["c_func_decompile"],
     )
 
-    timeout=10
+    timeout = 10
     flag_compile = 0
     flag_run = 0
     c_include = ""
@@ -97,7 +97,7 @@ def evaluate_func(params):
             )
             flag_run = 1
         except:
-            if 'process' in locals() and process:
+            if "process" in locals() and process:
                 process.kill()
                 process.wait()
             return flag_compile, flag_run
@@ -123,7 +123,7 @@ def decompile_pass_rate(testsets, gen_results_repeat, opts, args):
 
         pool.terminate()
         pool.join()
-        
+
         stats = {opt: {"compile": 0, "run": 0, "total": 0} for opt in opts}
         for idx, (testset, output, flag) in enumerate(
             tqdm(

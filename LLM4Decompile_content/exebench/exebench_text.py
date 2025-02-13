@@ -14,7 +14,7 @@ def main():
     while row < 1:
         pprint.pp(dataset[row])
         with open(burner_file, "w") as f:
-            f.write("void main()\n{}\n" + dataset[row]['func_def'])
+            f.write("void main()\n{}\n" + dataset[row]["func_def"])
 
         row += 1
     return 0

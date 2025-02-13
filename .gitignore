@@ -4,3 +4,5 @@
 *.c
 *.env
 *.cfg
+*.json
+*.dot
