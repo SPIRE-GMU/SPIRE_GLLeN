@@ -192,7 +192,7 @@ if __name__ == "__main__":
         "\n\n# Decompile the above Assembly code given the C code as context"
     )
 
-    input_text = "#write a single bubble sort algorith in python"
+    # input_text = "#write a single bubble sort algorith in python"
 
     # Tokenize and generate output
     inputs = tokenizer_chat(input_text, return_tensors="pt").to(model_chat.device)

@@ -218,7 +218,7 @@ def main():
         # Get a list of files with .c or .o extensions in the current working directory
         current_dir = os.path.dirname(__file__)
         files = [
-            f for f in os.listdir(current_dir) if f.endswith(".c") or f.endswith(".asm")
+            f for f in os.listdir(current_dir) if f.endswith(".c") or f.endswith(".s")
         ]
 
         # Prompt the user for the file name and display the list of files

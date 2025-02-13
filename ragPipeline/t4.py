@@ -13,10 +13,10 @@ import torch
 from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM
 
 # Ghidra Imports
-from ghidra.app.script import GhidraScript
-from ghidra.program.model.listing import FunctionManager
-from ghidra.graph import ControlFlowGraph
-from ghidra.util.task import TaskMonitor
+# from ghidra.app.script import GhidraScript
+# from ghidra.program.model.listing import FunctionManager
+# from ghidra.graph import ControlFlowGraph
+# from ghidra.util.task import TaskMonitor
 
 
 class CodeEmbeddingSearch:
@@ -125,7 +125,9 @@ class Neo4jHandler:
         except Exception as e:
             print("Oops")
 
-def performVectorFunctions():
+def vectorGenerateDatabase():
+    search_tool = CodeEmbeddingSearch()
+    
     ''' Initialize the CodeEmbeddingSearch search tool for vector based operations '''
     search_tool = CodeEmbeddingSearch()
 
@@ -133,19 +135,31 @@ def performVectorFunctions():
 
     ''' Generate and save embeddings '''
     file_directory = '/home/spire2/SPIRE_GLLeN/ragPipeline/asm_C'
+    
     asm_files, c_files = search_tool.create_index(file_directory)
-
     search_tool.generate_embeddings(asm_files)
     search_tool.save_index(asm_files,c_files)
 
+
+def performVectorFunctions():
+    ''' Initialize the CodeEmbeddingSearch search tool for vector based operations '''
+    search_tool = CodeEmbeddingSearch()
+
+
+
+    # ''' Generate and save embeddings '''
+    # file_directory = '/home/spire2/SPIRE_GLLeN/ragPipeline/asm_C'
+    
+    # asm_files, c_files = search_tool.create_index(file_directory)
+    # search_tool.generate_embeddings(asm_files)
+    # search_tool.save_index(asm_files,c_files)
+
     ''' Load Embeddings and File Lists '''
-    # search_tool.index, asm_files, c_files = search_tool.load_index()
-
-
+    search_tool.index, asm_files, c_files = search_tool.load_index()
 
     ''' Filepath to file you wish to decompile '''
     ''' Function Bellow use default filepath in arguments, for use refer to declerations '''
-    asm_file_path = "asm_C/hello_world.s"
+    asm_file_path = "asm_C/factorial.s"
 
     with open(asm_file_path, "r") as asm_file:
         input_asm_code = asm_file.read()
@@ -160,24 +174,30 @@ def performVectorFunctions():
     ''' Prepare input for a DeepSeek Coder or other downstream tasks '''
     # Only DeepSeek Handled Here
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
-    deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-base"
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-base"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-instruct"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-instruct"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
+    deepseek_model_path = "deepseek-ai/DeepSeek-Coder-V2-Lite-Base"
+
 
     tokenizer_chat = AutoTokenizer.from_pretrained(deepseek_model_path, trust_remote_code=True)
     model_chat = AutoModelForCausalLM.from_pretrained(
         deepseek_model_path,
         torch_dtype=torch.bfloat16,
         trust_remote_code=True,
-    ).cuda()
+        device_map = "auto"
+    )
 
     #assemble files to format model can understand
+
+    accelerator = Accelerator()
+    model_chat = accelerator.prepare(model_chat)
 
     input_text = (
         "# Assembly Code:\n" + input_asm_code +
         "\n\n# C Code:\n" + "\n".join(matched_c_code) +
-        "\n\n# Decompile the above Assembly code with the example C code given as context"
+        "\n\n# Decompile the given assembly code into its equivalent C Code"
     )
 
     # Tokenize and generate output
@@ -185,7 +205,7 @@ def performVectorFunctions():
     outputs = model_chat.generate(**inputs, max_length=2048)
 
     print("\n\n\nResponse:\n\n\n")
-    print(tokenizer_chat.decode(outputs[0], skip_special_tokens=True))
+    print(tokenizer_chat.decode(outputs[0][len(inputs["input_ids"][0]):-1], skip_special_tokens=True))
 
 def performCfgFunctions():
 
@@ -226,6 +246,9 @@ def performCfgFunctions():
 
 # Usage Example
 if __name__ == "__main__":
+
+    vectorGenerateDatabase()
+
     performVectorFunctions()
 
     # performCfgFunctions()

@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Directories
-c_files_dir = "/home/spire2/SPIRE_GLLeN/ragPipeline/asm_C"
-cfg_files_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/temp"
+c_files_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/c_files"
+cfg_files_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/cfg_files"
 c_badfiles_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/c_badfiles"
 asm_files_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/asm_files"
 

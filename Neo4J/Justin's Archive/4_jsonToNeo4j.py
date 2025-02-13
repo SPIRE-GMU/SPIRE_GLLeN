@@ -8,7 +8,7 @@ NEO4J_USER = "neo4j"
 NEO4J_PASSWORD = "rootboot"  # Update with the actual password
 
 # Load the CFG JSON data
-json_file_path = '/home/spire2/SPIRE_GLLeN/Neo4J/temp/cfg_data.json'
+json_file_path = '/home/spire2/SPIRE_GLLeN/Neo4J/cfg_data.json'
 with open(json_file_path, 'r') as json_file:
     cfg_data = json.load(json_file)
 

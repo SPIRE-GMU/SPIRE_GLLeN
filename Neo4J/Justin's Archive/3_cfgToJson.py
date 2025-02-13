@@ -157,7 +157,7 @@ def extract_cfg_elements(file_content, function_prefix):
 cfg_file_paths = []
 
 # Walk through the directory to find all CFG files in the specified folder
-cfg_directory = '/home/spire2/SPIRE_GLLeN/Neo4J/temp'
+cfg_directory = '/home/spire2/SPIRE_GLLeN/Neo4J/cfg_files'
 for root, dirs, files in os.walk(cfg_directory):
     for file in files:
         if file.endswith('.cfg'):
@@ -170,7 +170,7 @@ for file_path in cfg_file_paths:
         cfg_data[file_path] = extract_cfg_elements(file_content, function_prefix)
 
 # Write the extracted CFG data to a JSON file for easy inspection
-output_file_path = '/home/spire2/SPIRE_GLLeN/Neo4J/temp/cfg_data.json'
+output_file_path = '/home/spire2/SPIRE_GLLeN/Neo4J/cfg_data.json'
 with open(output_file_path, 'w') as json_file:
     json.dump(cfg_data, json_file, indent=4)
 
