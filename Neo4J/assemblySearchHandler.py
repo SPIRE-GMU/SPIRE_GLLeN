@@ -24,6 +24,8 @@ from dotenv import load_dotenv
 from neo4j import GraphDatabase
 import numpy as np
 
+import KNN_search
+
 # from sklearn.neighbors import NearestNeighbors
 
 
@@ -36,7 +38,7 @@ def asmToC(asmCode):
         input_asm_code = asm_function
 
     input = (
-        "Assembly Code:\n" + input_asm_code + "\n\n Decompile the above Assembly Code"
+        "Assembly Code:\n" + input_asm_code + "\n\n Decompile the above Assembly Code and return only C code with no other text, explinations, or formatting"
     )
 
     # print(input)
@@ -68,12 +70,12 @@ def cToCfg(c_file_name):
 def querryModel(input_text):
     """Prepare input for a DeepSeek Coder or other downstream tasks"""
     # Only DeepSeek Handled Here
-    deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
+    # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-base"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-instruct"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-instruct"
 
-    # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
+    deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
     # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
 
     tokenizer_chat = AutoTokenizer.from_pretrained(
@@ -104,30 +106,30 @@ def querryModel(input_text):
     )
 
 
-# Connect to Neo4j
-class Neo4jConnection:
-    def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+# # Connect to Neo4j
+# class Neo4jConnection:
+#     def __init__(self, uri, user, password):
+#         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
-    def close(self):
-        self.driver.close()
+#     def close(self):
+#         self.driver.close()
 
-    def get_cfgs(self):
-        with self.driver.session() as session:
-            result = session.run("MATCH (c:CFG) RETURN c.id AS id, c.vector AS vector")
-            return [(record["id"], np.array(record["vector"])) for record in result]
+#     def get_cfgs(self):
+#         with self.driver.session() as session:
+#             result = session.run("MATCH (c:CFG) RETURN c.id AS id, c.vector AS vector")
+#             return [(record["id"], np.array(record["vector"])) for record in result]
 
 
-""" Initialize neo4j variables """
-load_dotenv()
-NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_URI = os.getenv("NEO4J_CONNECTION_URI")
+# """ Initialize neo4j variables """
+# load_dotenv()
+# NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+# NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+# NEO4J_URI = os.getenv("NEO4J_CONNECTION_URI")
 
-# Replace with your Neo4j credentials
-# neo4j_conn = Neo4jConnection(NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD)
+# # Replace with your Neo4j credentials
+# # neo4j_conn = Neo4jConnection(NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD)
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
+# driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
 
 # Passed Arguments
 # First argument is source assmembly code to decompile
@@ -136,8 +138,12 @@ source_asm = sys.argv[1]
 
 # 1) Assmebly to C Code using specified model (DeepSeek Coder)
 created_c = asmToC(source_asm)
+
+created_c = created_c[150:]
+
 print(created_c)
 
+# here logic for temp_c/ : split on / and take the last one in source_asm.split
 c_out_file_name = "temp_c/" + source_asm.split(".")[0] + "_out.c"
 
 with open(c_out_file_name, "w") as file:
@@ -152,8 +158,27 @@ for filename in os.listdir("temp_c"):
     # Check if the file ends with .cfg
     if filename.endswith(".cfg"):
         cfg_file_name = filename
-print(cfg_file_name)
+
+
+matches = KNN_search.make_search("temp_c/"+cfg_file_name)
+
+print(matches[0])
 
 # 4) Original Assmebly and CFG are fed to specified model for final C code decompile
+
+input_text = "Decompile the following assembly code to C code:"
+
+with open(source_asm, "r") as file:
+    asm_function = file.read()
+    input_asm_code = asm_function
+
+input = (
+    "Assembly Code:\n" + input_asm_code + "\n\n Decompile the above Assembly Code with the following reference C code as context\n\n" + "\n\n".join(matches)
+) 
+
+# print(input)
+
+results = querryModel(input)
+print(results[2:])
 
 # 5) Similarity Matching with SMT to determine effectiveness

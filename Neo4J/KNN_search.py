@@ -317,16 +317,37 @@ def compute_knn(new_vec, db_data, top_k=3):
         results.append((names[i], sims[i]))
     return results
 
+###############################################################################
+# USING FNAME, RETURN C CODE
+###############################################################################
+def fetch_code_from_neo4j(fname):
+    """
+    Given a function_name (fname), look up the c_data property
+    on the corresponding :Function node in Neo4j.
+    Returns the string code, or None if not found.
+    """
+    with driver.session() as session:
+        result = session.run(
+            """
+            MATCH (f:Function {function_name: $fname})
+            RETURN f.c_data AS code
+            """,
+            fname=fname
+        )
+        record = result.single()
+        if record:
+            return record["code"]
+        return None
 
 ###############################################################################
 # MAIN
 ###############################################################################
-def main():
-    if len(sys.argv) < 2:
-        print(f"Usage: python {os.path.basename(__file__)} <new.cfg>")
-        sys.exit(1)
+def make_search(cfg_file_path):
+    # if len(sys.argv) < 2:
+    #     print(f"Usage: python {os.path.basename(__file__)} <new.cfg>")
+    #     sys.exit(1)
 
-    cfg_file_path = sys.argv[1]
+    # cfg_file_path = sys.argv[1]
     if not os.path.isfile(cfg_file_path):
         print(f"[ERROR] The file '{cfg_file_path}' does not exist.")
         sys.exit(1)
@@ -376,16 +397,27 @@ def main():
 
     # 6) KNN search
     print("[INFO] Performing KNN search via cosine similarity...")
-    top_matches = compute_knn(new_emb, db_data, top_k=10)
+    top_matches = compute_knn(new_emb, db_data, top_k=3)
 
     # 7) Print results
-    print("\n[RESULT] Top 3 matches by similarity:")
+    matches = []
     for fname, score in top_matches:
-        print(f" - {fname}: similarity={score:.4f}")
+        code_str = fetch_code_from_neo4j(fname)
+        print(f"\nBest match: {fname}, similarity={score:.4f}")
+        if code_str:
+            print("Code:")
+            print(code_str)
+            # Store the code in our matches array
+            matches.append(code_str)
+        else:
+            print("[WARN] No code found in c_data")
+            matches.append("[No code found]")
 
     driver.close()
     print("[INFO] Done.")
 
+    # For each of top match, assembly into string array and return for handling.
+    return matches
 
 if __name__ == "__main__":
-    main()
+    make_search(sys.argv[1])

@@ -22,7 +22,7 @@ MODEL_PATH = "/home/spire2/LLM4Decompile/llm4decompile-22b-v2"
 origin_no_path = "origin"
 
 recompile_no_path = "new_file"
-optimization = ["O1", "O2", "O3"]
+optimization = ["O0", "O1", "O2", "O3"]
 
 
 def main():
@@ -30,10 +30,12 @@ def main():
     The main function controling all other functions
     """
     currently_a_success = True
+    garbage_file_count_0 = 0
     garbage_file_count_1 = 0
     garbage_file_count_2 = 0
     garbage_file_count_3 = 0
 
+    success_count_0 = 0
     success_count_1 = 0
     success_count_2 = 0
     success_count_3 = 0
@@ -110,6 +112,20 @@ def main():
                         )
                         shutil.copy(
                             original_file,
+                            f"red-team-success/{origin_no_path}{optimization[opt]}{success_count_0}.c",
+                        )
+                        shutil.copy(
+                            recompiled_file,
+                            f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_0}.c",
+                        )
+
+                        success_count_0 += 1
+                    elif opt == 1:
+                        assemble(
+                            recompiled_file, recompile_no_path, func0, optimization[opt]
+                        )
+                        shutil.copy(
+                            original_file,
                             f"red-team-success/{origin_no_path}{optimization[opt]}{success_count_1}.c",
                         )
                         shutil.copy(
@@ -118,7 +134,7 @@ def main():
                         )
 
                         success_count_1 += 1
-                    elif opt == 1:
+                    elif opt == 2:
                         assemble(
                             recompiled_file, recompile_no_path, func0, optimization[opt]
                         )
@@ -131,7 +147,7 @@ def main():
                             f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_2}.c",
                         )
                         success_count_2 += 1
-                    elif opt == 2:
+                    elif opt == 3:
                         assemble(
                             recompiled_file, recompile_no_path, func0, optimization[opt]
                         )
@@ -144,11 +160,23 @@ def main():
                             f"red-team-success/{recompile_no_path}{optimization[opt]}{success_count_3}.c",
                         )
                         success_count_3 += 1
+                    
 
                     else:
                         pass
             except:
                 if opt == 0:
+
+                    shutil.copy(
+                        original_file,
+                        f"red-team-failures/{origin_no_path}{optimization[opt]}{garbage_file_count_0}.c",
+                    )
+                    shutil.copy(
+                        recompiled_file,
+                        f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_0}.c",
+                    )
+                    garbage_file_count_0 += 1
+                elif opt == 1:
 
                     shutil.copy(
                         original_file,
@@ -159,7 +187,7 @@ def main():
                         f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_1}.c",
                     )
                     garbage_file_count_1 += 1
-                elif opt == 1:
+                elif opt == 2:
 
                     shutil.copy(
                         original_file,
@@ -170,7 +198,7 @@ def main():
                         f"red-team-failures/{recompile_no_path}{optimization[opt]}{garbage_file_count_2}.c",
                     )
                     garbage_file_count_2 += 1
-                elif opt == 2:
+                elif opt == 3:
 
                     shutil.copy(
                         original_file,
