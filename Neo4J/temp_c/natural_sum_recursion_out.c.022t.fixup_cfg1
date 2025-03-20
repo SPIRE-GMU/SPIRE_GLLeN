@@ -1,0 +1,56 @@
+
+;; Function addNumbers (addNumbers, funcdef_no=0, decl_uid=2345, cgraph_uid=1, symbol_order=0)
+
+int addNumbers (int n)
+{
+  int D.2354;
+
+  <bb 2> :
+  if (n == 0)
+    goto <bb 3>; [INV]
+  else
+    goto <bb 4>; [INV]
+
+  <bb 3> :
+  D.2354 = 0;
+  // predicted unlikely by early return (on trees) predictor.
+  goto <bb 5>; [INV]
+
+  <bb 4> :
+  _1 = n + -1;
+  _2 = addNumbers (_1);
+  D.2354 = n + _2;
+  // predicted unlikely by early return (on trees) predictor.
+
+  <bb 5> :
+<L2>:
+  return D.2354;
+
+}
+
+
+
+;; Function main (main, funcdef_no=1, decl_uid=2347, cgraph_uid=2, symbol_order=1)
+
+int main ()
+{
+  int sum;
+  int n;
+  int D.2356;
+
+  <bb 2> :
+  printf ("Enter a positive integer: ");
+  scanf ("%d", &n);
+  n.0_1 = n;
+  sum = addNumbers (n.0_1);
+  printf ("Sum = %d", sum);
+  D.2356 = 0;
+  n = {CLOBBER};
+
+  <bb 3> :
+<L1>:
+  return D.2356;
+
+}
+
+

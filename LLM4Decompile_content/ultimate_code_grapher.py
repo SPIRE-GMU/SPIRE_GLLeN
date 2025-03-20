@@ -18,7 +18,7 @@ asm_files_dir = "/home/spire2/SPIRE_GLLeN/LLM4Decompile_content/filled_with_asm"
 os.makedirs(cfg_files_dir, exist_ok=True)
 os.makedirs(c_badfiles_dir, exist_ok=True)
 os.makedirs(asm_files_dir, exist_ok=True)
-optimization_list = ['', 'O1', 'O2', 'O3']
+optimization_list = ['O0', 'O1', 'O2', 'O3']
 
 def generate_cfg_and_asm(c_file_path, cfg_output_dir, asm_output_dir, bad_files_dir, optimization):
     # Ensure the input file exists
@@ -104,10 +104,7 @@ def generate_cfg_and_asm(c_file_path, cfg_output_dir, asm_output_dir, bad_files_
 # Loop through all .c files in the c_files_dir and generate CFGs and ASM files
 for x in optimization_list:
     for c_file in os.listdir(c_files_dir):
-        if optimization_list[1] not in c_file and optimization_list[2] not in c_file and optimization_list[3] not in c_file and x in c_file:
-            c_file_path = os.path.join(c_files_dir, c_file)
-            generate_cfg_and_asm(c_file_path, cfg_files_dir, asm_files_dir, c_badfiles_dir, x)
-        elif c_file.endswith(".c") and x in c_file:
+        if c_file.endswith(".c") and x in c_file:
             c_file_path = os.path.join(c_files_dir, c_file)
             generate_cfg_and_asm(c_file_path, cfg_files_dir, asm_files_dir, c_badfiles_dir, x)
 

@@ -67,7 +67,8 @@ def cToCfg(c_file_name):
     return c_file_name.split(".")[0] + ".out"
 
 
-def querryModel(input_text):
+
+def loadModel():
     """Prepare input for a DeepSeek Coder or other downstream tasks"""
     # Only DeepSeek Handled Here
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-base"
@@ -75,12 +76,14 @@ def querryModel(input_text):
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-instruct"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-instruct"
 
-    deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
-    # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
+    # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
+    deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
 
+    global tokenizer_chat 
     tokenizer_chat = AutoTokenizer.from_pretrained(
         deepseek_model_path, trust_remote_code=True
     )
+    global model_chat 
     model_chat = AutoModelForCausalLM.from_pretrained(
         deepseek_model_path,
         torch_dtype=torch.bfloat16,
@@ -89,13 +92,16 @@ def querryModel(input_text):
         device_map="auto",
     )
 
+    global accelerator 
     accelerator = Accelerator()
+
     model_chat = accelerator.prepare(model_chat)
 
     # assemble files to format model can understand
 
     # input_text = "#write a single bubble sort algorith in python"
 
+def querryModel(input_text):
     # Tokenize and generate output
     inputs = tokenizer_chat(input_text, return_tensors="pt").to(accelerator.device)
     outputs = model_chat.generate(**inputs, max_length=3000)
@@ -135,11 +141,13 @@ def querryModel(input_text):
 # First argument is source assmembly code to decompile
 source_asm = sys.argv[1]
 
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
+loadModel()
 
 # 1) Assmebly to C Code using specified model (DeepSeek Coder)
 created_c = asmToC(source_asm)
 
-created_c = created_c[150:]
+created_c = created_c.split("```")[1][1:]
 
 print(created_c)
 
@@ -178,7 +186,8 @@ input = (
 
 # print(input)
 
-results = querryModel(input)
-print(results[2:])
+results = querryModel(input).split("```")[1][1:]
+
+print(results)
 
 # 5) Similarity Matching with SMT to determine effectiveness

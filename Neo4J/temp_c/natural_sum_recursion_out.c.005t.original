@@ -1,0 +1,34 @@
+
+;; Function addNumbers (null)
+;; enabled by -tree-original
+
+
+{
+  if (n == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return addNumbers (n + -1) + n;
+    }
+}
+
+
+;; Function main (null)
+;; enabled by -tree-original
+
+
+{
+  int n;
+  int sum = addNumbers (n);
+
+    int n;
+  printf ((const char * restrict) "Enter a positive integer: ");
+  scanf ((const char * restrict) "%d", &n);
+    int sum = addNumbers (n);
+  printf ((const char * restrict) "Sum = %d", sum);
+  return 0;
+}
+return 0;
+

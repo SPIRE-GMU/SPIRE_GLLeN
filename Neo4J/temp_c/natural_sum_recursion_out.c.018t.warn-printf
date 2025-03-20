@@ -1,0 +1,66 @@
+
+;; Function addNumbers (addNumbers, funcdef_no=0, decl_uid=2345, cgraph_uid=1, symbol_order=0)
+
+int addNumbers (int n)
+{
+  int D.2354;
+
+  <bb 2> :
+  if (n == 0)
+    goto <bb 3>; [INV]
+  else
+    goto <bb 4>; [INV]
+
+  <bb 3> :
+  D.2354 = 0;
+  // predicted unlikely by early return (on trees) predictor.
+  goto <bb 5>; [INV]
+
+  <bb 4> :
+  _1 = n + -1;
+  _2 = addNumbers (_1);
+  D.2354 = n + _2;
+  // predicted unlikely by early return (on trees) predictor.
+
+  <bb 5> :
+<L2>:
+  return D.2354;
+
+}
+
+
+
+;; Function main (main, funcdef_no=1, decl_uid=2347, cgraph_uid=2, symbol_order=1)
+
+temp_c/natural_sum_recursion_out.c:14: printf: objsize = 9223372036854775807, fmtstr = "Enter a positive integer: "
+  Directive 1 at offset 0: "Enter a positive integer: ", length = 26
+    Result: 26, 26, 26, 26 (26, 26, 26, 26)
+  Directive 2 at offset 26: "", length = 1
+temp_c/natural_sum_recursion_out.c:17: printf: objsize = 9223372036854775807, fmtstr = "Sum = %d"
+  Directive 1 at offset 0: "Sum = ", length = 6
+    Result: 6, 6, 6, 6 (6, 6, 6, 6)
+  Directive 2 at offset 6: "%d"
+    Result: 1, 1, 11, 11 (7, 7, 17, 17)
+  Directive 3 at offset 8: "", length = 1
+int main ()
+{
+  int sum;
+  int n;
+  int D.2356;
+
+  <bb 2> :
+  printf ("Enter a positive integer: ");
+  scanf ("%d", &n);
+  n.0_1 = n;
+  sum = addNumbers (n.0_1);
+  printf ("Sum = %d", sum);
+  D.2356 = 0;
+  n = {CLOBBER};
+
+  <bb 3> :
+<L1>:
+  return D.2356;
+
+}
+
+
