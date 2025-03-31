@@ -1,5 +1,5 @@
 """
-Craig Kimball
+Craig Kimball with parts from Justin Rockwell
 
 This file handles the RAG pipeline using CFG's in Neo4J
 Version 1 uses the following pipeline
@@ -38,13 +38,18 @@ def asmToC(asmCode):
         input_asm_code = asm_function
 
     input = (
-        "Assembly Code:\n" + input_asm_code + "\n\n Decompile the above Assembly Code and return only C code with no other text, explinations, or formatting"
+        "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code and return only C code with no other text, explinations, or formatting"
     )
 
-    # print(input)
+    input =  "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code formatted with the C code surrounded by ``` to indicate where the code is"
+
+    print(input)
     # input = "Write a simple python buble sort method and return only the code"
     results = querryModel(input)
-    return results[2:]
+    print(results)
+    # input("Test Did work?")
+    # print("+++++")
+    return results
 
 
 def cToCfg(c_file_name):
@@ -53,7 +58,7 @@ def cToCfg(c_file_name):
 
     gcc_cfg_command = [
         "gcc",  # Adjusted to use gcc 11.4.0 for ubuntu
-        "-fdump-tree-all-graph",
+        "-fdump-tree-cfg-graph",
         "-c",  # Compile only, do not link (suitable for files without main)
         c_file_name,
         "-o",
@@ -76,8 +81,8 @@ def loadModel():
     # deepseek_model_path = "deepseek-ai/deepseek-coder-6.7b-instruct"
     # deepseek_model_path = "deepseek-ai/deepseek-coder-1.3b-instruct"
 
-    # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
-    deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
+    deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
+    # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
 
     global tokenizer_chat 
     tokenizer_chat = AutoTokenizer.from_pretrained(
@@ -104,7 +109,7 @@ def loadModel():
 def querryModel(input_text):
     # Tokenize and generate output
     inputs = tokenizer_chat(input_text, return_tensors="pt").to(accelerator.device)
-    outputs = model_chat.generate(**inputs, max_length=3000)
+    outputs = model_chat.generate(**inputs, max_length=5000)
 
     # print("\n\n\nResponse:\n\n\n")
     return tokenizer_chat.decode(
@@ -139,55 +144,66 @@ def querryModel(input_text):
 
 # Passed Arguments
 # First argument is source assmembly code to decompile
-source_asm = sys.argv[1]
 
-os.environ["TOKENIZERS_PARALLELISM"] = "true"
-loadModel()
+def main():
 
-# 1) Assmebly to C Code using specified model (DeepSeek Coder)
-created_c = asmToC(source_asm)
+    source_asm = sys.argv[1]
 
-created_c = created_c.split("```")[1][1:]
+    os.environ["TOKENIZERS_PARALLELISM"] = "true"
+    # loadModel()
 
-print(created_c)
+    # 1) Assmebly to C Code using specified model (DeepSeek Coder)
+    created_c = asmToC(source_asm)
+    created_c = created_c.split("```")[1][1:]
 
-# here logic for temp_c/ : split on / and take the last one in source_asm.split
-c_out_file_name = "temp_c/" + source_asm.split(".")[0] + "_out.c"
+    # print(created_c)
 
-with open(c_out_file_name, "w") as file:
-    file.write(created_c)
+    # here logic for temp_c/ : split on / and take the last one in source_asm.split
+    c_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.c"
 
-
-# 2) C Code to CFG
-cfg_file_name = cToCfg(c_out_file_name)
-
-# 3) CFG KNN search in NEO4j Database
-for filename in os.listdir("temp_c"):
-    # Check if the file ends with .cfg
-    if filename.endswith(".cfg"):
-        cfg_file_name = filename
+    with open(c_out_file_name, "w") as file:
+        file.write(created_c)
 
 
-matches = KNN_search.make_search("temp_c/"+cfg_file_name)
+    # 2) C Code to CFG
+    cfg_file_name = cToCfg(c_out_file_name)
 
-print(matches[0])
+    # 3) CFG KNN search in NEO4j Database
+    for filename in os.listdir("temp_c"):
+        # Check if the file ends with .cfg
+        if filename.endswith(".cfg"):
+            cfg_file_name = filename
 
-# 4) Original Assmebly and CFG are fed to specified model for final C code decompile
 
-input_text = "Decompile the following assembly code to C code:"
+    matches = KNN_search.make_search("temp_c/"+cfg_file_name)
 
-with open(source_asm, "r") as file:
-    asm_function = file.read()
-    input_asm_code = asm_function
+    # print(matches[0])
 
-input = (
-    "Assembly Code:\n" + input_asm_code + "\n\n Decompile the above Assembly Code with the following reference C code as context\n\n" + "\n\n".join(matches)
-) 
+    # 4) Original Assmebly and CFG are fed to specified model for final C code decompile
 
-# print(input)
+    input_text = "Decompile the following assembly code to C code:"
 
-results = querryModel(input).split("```")[1][1:]
+    with open(source_asm, "r") as file:
+        asm_function = file.read()
+        input_asm_code = asm_function
 
-print(results)
+    input = (
+        "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference\n\n" + "\n\n".join(matches)
+    ) 
+    # print("\n\n\n\n+++++++++++++++++++++++++++++++++++++++")
 
-# 5) Similarity Matching with SMT to determine effectiveness
+    results = querryModel(input)
+    print(results)
+
+    results = results.split("```")[-2][1:]
+    # results = querryModel(input)
+
+    print(results)
+    return(results)
+
+    # 5) Similarity Matching with SMT to determine effectiveness
+
+if __name__ == '__main__':
+    os.environ["TOKENIZERS_PARALLELISM"] = "true"
+    loadModel()
+    main()
