@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 
 from neo4j import GraphDatabase
 import numpy as np
+import r2pipe
 
 import KNN_search
 
@@ -71,7 +72,66 @@ def cToCfg(c_file_name):
 
     return c_file_name.split(".")[0] + ".out"
 
+def asmToCFG(dot_file, obj_file, func_name):
+    #r2 takes input object file.
 
+    # Step 3: Open radare2 (r2pipe) and analyze the object file
+    print(f"[DEBUG] Opening radare2 on {obj_file} with function name = {func_name}")
+    r2 = r2pipe.open(obj_file, flags=["-2"])  # quiet mode
+    print("[DEBUG] Running 'aaa' (auto analyze all)...")
+    r2.cmd("aaa")
+
+    # Step 4: List functions (afl) for debugging
+    print("[DEBUG] Output of 'afl':")
+    afl_output = r2.cmd("afl")
+    print(afl_output)
+
+    # Step 5: Attempt to export the CFG in DOT format using the provided function name
+    agfd_cmd = f"agfd @ {func_name}"
+    print(f"[DEBUG] Running '{agfd_cmd}' ...")
+    dot_data = r2.cmd(agfd_cmd)
+
+    # Fallback: if no data, try prefixing with "sym."
+    if not dot_data.strip():
+        print("[WARN] DOT data is empty. Trying with 'sym.' prefix...")
+        agfd_cmd = f"agfd @ sym.{func_name}"
+        print(f"[DEBUG] Running '{agfd_cmd}' ...")
+        dot_data = r2.cmd(agfd_cmd)
+
+    r2.quit()
+
+    if dot_data.strip() == "":
+        print("[ERROR] DOT data is still empty. No CFG was generated for the function.")
+    else:
+        print(f"[DEBUG] DOT data length: {len(dot_data)} characters")
+
+    # Step 6: Write the DOT data to file
+    with open(dot_file, "w") as f:
+        f.write(dot_data)
+    print(f"[DEBUG] DOT CFG saved to '{dot_file}'")
+    
+
+def objToS(out_dir, object_file):
+    assembly_file_path = os.path.join(out_dir, os.path.splitext(os.path.basename(object_file))[0] + '.s')
+    
+    # Use objdump to disassemble the object file
+    with open(assembly_file_path, 'w') as f:
+        subprocess.run(['objdump', '-d', object_file], 
+                      check=True, stdout=f)
+
+    # Parse the assembly file to extract function name
+    function_name = None
+    with open(assembly_file_path, 'r') as f:
+        for line in f:
+            # Look for lines containing function declarations
+            if '<' in line and '>:' in line:
+                # Extract the function name between < and >
+                start = line.find('<') + 1
+                end = line.find('>')
+                function_name = line[start:end]
+                break  # Stop after finding the first function
+    
+    return assembly_file_path, function_name
 
 def loadModel():
     """Prepare input for a DeepSeek Coder or other downstream tasks"""
@@ -147,26 +207,37 @@ def querryModel(input_text):
 
 def main():
 
-    source_asm = sys.argv[1]
+    # source_asm = sys.argv[1]
+    source_obj = sys.argv[1]
 
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
     # loadModel()
 
-    # 1) Assmebly to C Code using specified model (DeepSeek Coder)
-    created_c = asmToC(source_asm)
-    created_c = created_c.split("```")[1][1:]
+    # 1.A) Assmebly to C Code using specified model (DeepSeek Coder)
+    # created_c = asmToC(source_asm)
+    # created_c = created_c.split("```")[1][1:]
 
     # print(created_c)
 
+    
     # here logic for temp_c/ : split on / and take the last one in source_asm.split
-    c_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.c"
+    # c_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.c"
+    
+    # with open(c_out_file_name, "w") as file:
+        # file.write(created_c)
 
-    with open(c_out_file_name, "w") as file:
-        file.write(created_c)
 
+    # 1.B) Assembly to .dot CFG directly
+    source_asm, function_name = objToS("temp_c/",source_obj)
+
+    c_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.dot"
+    cfg_file_name = asmToCFG(c_out_file_name, source_obj, function_name)
+
+    
 
     # 2) C Code to CFG
-    cfg_file_name = cToCfg(c_out_file_name)
+    # not needed when using r2
+    # cfg_file_name = cToCfg(c_out_file_name)
 
     # 3) CFG KNN search in NEO4j Database
     for filename in os.listdir("temp_c"):
