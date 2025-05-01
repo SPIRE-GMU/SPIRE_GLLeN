@@ -1,0 +1,167 @@
+Assembly Code:
+
+justin/count_alpha_digit.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <count_alpha_digit>:
+   0:   f3 0f 1e fa             endbr64 
+   4:   55                      push   %rbp
+   5:   48 89 e5                mov    %rsp,%rbp
+   8:   48 89 7d e8             mov    %rdi,-0x18(%rbp)
+   c:   89 75 e4                mov    %esi,-0x1c(%rbp)
+   f:   c7 45 f4 00 00 00 00    movl   $0x0,-0xc(%rbp)
+  16:   c7 45 f8 00 00 00 00    movl   $0x0,-0x8(%rbp)
+  1d:   eb 1c                   jmp    3b <count_alpha_digit+0x3b>
+  1f:   8b 45 f8                mov    -0x8(%rbp),%eax
+  22:   48 63 d0                movslq %eax,%rdx
+  25:   48 8b 45 e8             mov    -0x18(%rbp),%rax
+  29:   48 01 d0                add    %rdx,%rax
+  2c:   0f b6 00                movzbl (%rax),%eax
+  2f:   3c 41                   cmp    $0x41,%al
+  31:   75 04                   jne    37 <count_alpha_digit+0x37>
+  33:   83 45 f4 01             addl   $0x1,-0xc(%rbp)
+  37:   83 45 f8 01             addl   $0x1,-0x8(%rbp)
+  3b:   8b 45 f8                mov    -0x8(%rbp),%eax
+  3e:   3b 45 e4                cmp    -0x1c(%rbp),%eax
+  41:   7c dc                   jl     1f <count_alpha_digit+0x1f>
+  43:   c7 45 fc 00 00 00 00    movl   $0x0,-0x4(%rbp)
+  4a:   eb 1c                   jmp    68 <count_alpha_digit+0x68>
+  4c:   8b 45 fc                mov    -0x4(%rbp),%eax
+  4f:   48 63 d0                movslq %eax,%rdx
+  52:   48 8b 45 e8             mov    -0x18(%rbp),%rax
+  56:   48 01 d0                add    %rdx,%rax
+  59:   0f b6 00                movzbl (%rax),%eax
+  5c:   3c 30                   cmp    $0x30,%al
+  5e:   75 04                   jne    64 <count_alpha_digit+0x64>
+  60:   83 45 f4 01             addl   $0x1,-0xc(%rbp)
+  64:   83 45 fc 01             addl   $0x1,-0x4(%rbp)
+  68:   8b 45 fc                mov    -0x4(%rbp),%eax
+  6b:   3b 45 e4                cmp    -0x1c(%rbp),%eax
+  6e:   7c dc                   jl     4c <count_alpha_digit+0x4c>
+  70:   8b 45 f4                mov    -0xc(%rbp),%eax
+  73:   5d                      pop    %rbp
+  74:   c3                      ret    
+
+
+Decompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference
+
+Structural Reference 1:
+ void test_port(unsigned data, unsigned ctrl, unsigned stat){
+ int i,r;
+ for(i=0; i < 8; i++){
+  bus_writebyte(data, 1<<i);
+  usleep(2);
+  r = bus_readbyte(data);
+  if(r!=(1<<i)){
+   printf("Error on 0x%X, expected %x, got %x\n", data, 1<<i,r);
+  }
+ }
+
+ for(i=0; i < 6; i++){
+  bus_writebyte(ctrl, 1<<i);
+  usleep(2);
+  r = bus_readbyte(ctrl);
+  if(r!=(1<<i)){
+   printf("Error on 0x%X, expected %x, got %x\n", ctrl, 1<<i,r);
+  }
+ }
+
+}
+
+Structural Reference 2:
+ void avevar(double *data, int n, double *ave, double *var)
+{
+
+  int j, n_;
+  double s,ep;
+  for (*ave=0.0,j=0, n_=0;j<n;j++) {
+    if(!isnan(data[j]))
+      {
+ n_++;
+ *ave += data[j];
+      }
+  }
+  *ave /= n_;
+  *var=ep=0.0;
+  for (j=0;j<n;j++) {
+    if(!isnan(data[j]))
+      {
+ s=data[j]-(*ave);
+ ep += s;
+ *var += s*s;
+      }
+  }
+  *var = (*var - ep*ep/n_)/(n_-1);
+}
+
+Structural Reference 3:
+ void svdthresh(
+double w[],
+int n
+) {
+ int i;
+ double maxw;
+
+
+ for (maxw = 0.0, i = 0; i < n; i++) {
+  if (w[i] > maxw)
+   maxw = w[i];
+ }
+ maxw *= 1.0e-12;
+ for (i = 0; i < n; i++) {
+  if (w[i] < maxw)
+   w[i] = 0.0;
+ }
+}
+
+Structural Reference 4:
+ void dump(int accumulator, int operationCode, int operand,
+    int instructionCounter, int instructionRegister, int *m) {
+
+    int k;
+
+    printf(" accumulator: %d\n instructionCounter:%d\n instructionRegister: %d\n operationCode: %d\n operand: %d\n",
+            accumulator, instructionCounter, instructionRegister, operationCode, operand);
+
+    printf("\nMemory:\n");
+
+    for(k = 0; k < 10; k++) {
+       if(k == 0) {
+         printf("  ");
+       }
+       printf("%6d", k);
+    }
+
+    for(k = 0; k < 100; k++) {
+        if( ( k % 10 ) == 0 ) {
+          printf("\n");
+          printf("%2d", k);
+        }
+
+        printf(" %5i", m[k]);
+    }
+
+}
+
+Structural Reference 5:
+ int sum_filtered_ranges(int *arr, int size) {
+    int sum = 0;
+
+    // First loop: sum values greater than 10
+    for (int i = 0; i < size; i++) {
+        if (arr[i] > 10) {
+            sum += arr[i];
+        }
+    }
+
+    // Second loop: subtract values less than 0
+    for (int i = 0; i < size; i++) {
+        if (arr[i] < 0) {
+            sum -= arr[i];  // subtracting a negative = add
+        }
+    }
+
+    return sum;
+}
