@@ -7,10 +7,11 @@ import json
 # Regex Patterns
 ###############################################################################
 ATTR_PAIR_REGEX = re.compile(r'(\w+)\s*=\s*("([^"]*)"|[^",\s]+)')
-NODE_LINE_REGEX = re.compile(r'^(\S+)\s*\[(.*?)\];\s*$')
-EDGE_LINE_REGEX = re.compile(r'^(\S+)\s*->\s*(\S+)\s*\[(.*?)\];\s*$')
-PORT_SUFFIX_REGEX = re.compile(r':[a-zA-Z]+$')
+NODE_LINE_REGEX = re.compile(r"^(\S+)\s*\[(.*?)\];\s*$")
+EDGE_LINE_REGEX = re.compile(r"^(\S+)\s*->\s*(\S+)\s*\[(.*?)\];\s*$")
+PORT_SUFFIX_REGEX = re.compile(r":[a-zA-Z]+$")
 LABEL_LINE_REGEX = re.compile(r'^label="([^"]*)"\s*;')
+
 
 ###############################################################################
 # Helpers
@@ -20,9 +21,14 @@ def parse_attributes(attr_str):
     for match in ATTR_PAIR_REGEX.finditer(attr_str):
         key = match.group(1)
         raw_val = match.group(2)
-        val = raw_val[1:-1] if raw_val.startswith('"') and raw_val.endswith('"') else raw_val
+        val = (
+            raw_val[1:-1]
+            if raw_val.startswith('"') and raw_val.endswith('"')
+            else raw_val
+        )
         attrs[key] = val
     return attrs
+
 
 def parse_dot_file(dot_path):
     with open(dot_path, "r", encoding="utf-8", errors="replace") as f:
@@ -51,7 +57,7 @@ def parse_dot_file(dot_path):
         if node_m:
             node_id_raw = node_m.group(1)
             attr_part = node_m.group(2)
-            node_id = PORT_SUFFIX_REGEX.sub('', node_id_raw)
+            node_id = PORT_SUFFIX_REGEX.sub("", node_id_raw)
             attrs = parse_attributes(attr_part)
             nodes.append({"id": node_id, "attributes": attrs})
             seen_nodes.add(node_id)
@@ -59,8 +65,8 @@ def parse_dot_file(dot_path):
 
         edge_m = EDGE_LINE_REGEX.match(line)
         if edge_m:
-            from_id = PORT_SUFFIX_REGEX.sub('', edge_m.group(1))
-            to_id = PORT_SUFFIX_REGEX.sub('', edge_m.group(2))
+            from_id = PORT_SUFFIX_REGEX.sub("", edge_m.group(1))
+            to_id = PORT_SUFFIX_REGEX.sub("", edge_m.group(2))
             attr_part = edge_m.group(3)
             attrs = parse_attributes(attr_part)
             edges.append({"from": from_id, "to": to_id, "attributes": attrs})
@@ -69,26 +75,26 @@ def parse_dot_file(dot_path):
 
     # Add nodes seen in edges but never declared
     for missing_id in edge_node_ids - seen_nodes:
-        nodes.append({
-            "id": missing_id,
-            "attributes": {
-                "label": missing_id,
-                "style": "inferred",
-                "fillcolor": "gray"
+        nodes.append(
+            {
+                "id": missing_id,
+                "attributes": {
+                    "label": missing_id,
+                    "style": "inferred",
+                    "fillcolor": "gray",
+                },
             }
-        })
+        )
 
-    return {
-        "function_name": function_name,
-        "nodes": nodes,
-        "edges": edges
-    }
+    return {"function_name": function_name, "nodes": nodes, "edges": edges}
+
 
 def parse_and_save_dot(dot_path, out_json_path):
     parsed = parse_dot_file(dot_path)
     with open(out_json_path, "w", encoding="utf-8") as out_f:
         json.dump(parsed, out_f, indent=2)
     print(f"[OK] Parsed '{dot_path}' → '{out_json_path}'")
+
 
 def main():
     dot_dir = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/dot_files_newDB"
@@ -100,6 +106,7 @@ def main():
             dot_path = os.path.join(dot_dir, filename)
             out_path = os.path.join(json_dir, os.path.splitext(filename)[0] + ".json")
             parse_and_save_dot(dot_path, out_path)
+
 
 if __name__ == "__main__":
     main()

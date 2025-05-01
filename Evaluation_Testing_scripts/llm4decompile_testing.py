@@ -15,12 +15,11 @@ import subprocess
 import re
 
 MODEL_PATH = "LLM4Decompile/llm4decompile-22b-v2"
-c_file_dir = "c_files/" 
-success_file_dir = 'llm4_success_files/'
-garbage_dir = 'llm4_garbage/'
-fail_dir = 'llm4_fail_files/'
-c_temp_dir = 'llm4_temp/'
-
+c_file_dir = "c_files/"
+success_file_dir = "llm4_success_files/"
+garbage_dir = "llm4_garbage/"
+fail_dir = "llm4_fail_files/"
+c_temp_dir = "llm4_temp/"
 
 
 def main():
@@ -28,26 +27,24 @@ def main():
     The main function controling all other functions
     """
     tokenizer, model = load_model()
-    count = {'Success': 0, 'Fail': 0}
-
-    
+    count = {"Success": 0, "Fail": 0}
 
     for file in os.listdir(c_file_dir):
         if file.endswith(".c"):
             c_path = os.path.join(c_file_dir, file)
             filename = os.path.splitext(os.path.basename(c_path))[0]
-            name_list = re.split("_(\d+)",filename)
+            name_list = re.split("_(\d+)", filename)
             func_name = name_list[0]
-            count = decompile_counter(c_path, count, model, tokenizer, filename, func_name)
+            count = decompile_counter(
+                c_path, count, model, tokenizer, filename, func_name
+            )
 
     return count
 
     # 1) Load dataset split. In this case, synthetic test split
 
 
-
 def decompile_counter(c_path, count, model, tokenizer, filename, func_name):
-    
 
     try:
         asm_file = assemble(c_path, garbage_dir, filename, func_name)
@@ -59,12 +56,11 @@ def decompile_counter(c_path, count, model, tokenizer, filename, func_name):
 
         currently_a_success = True
 
+        # Clear the terminal screen
 
-                # Clear the terminal screen
+        # Display the ASCII art
 
-                # Display the ASCII art
-
-                # Get a list of files with .c or .o extensions in the current working directory
+        # Get a list of files with .c or .o extensions in the current working directory
 
     except:
         print("This file sucks becuse exebench sucks")
@@ -73,10 +69,10 @@ def decompile_counter(c_path, count, model, tokenizer, filename, func_name):
     if currently_a_success:
         count = recompile(temp_path, success_file_dir, fail_dir, count, garbage_dir)
 
-
     # TODO recompiled_file
     print(count)
     return count
+
 
 def recompile(file_path, success_path, fail_path, count, garbage_folder):
     filename = os.path.splitext(os.path.basename(file_path))[0]
@@ -98,7 +94,7 @@ def recompile(file_path, success_path, fail_path, count, garbage_folder):
         count["Fail"] = count["Fail"] + 1
         shutil.copy(file_path, fail_path)
         return count
-    
+
 
 def assemble(file_path, garbage_path, filename, func_name):
 
@@ -142,7 +138,6 @@ def assemble(file_path, garbage_path, filename, func_name):
     print(f"Assembly file generated: {asm_file_name}")
     print(f"Object file generated: {obj_file_name}")
     return asm_file_name
-
 
     # with open(asm_file) as f:  # asm file
     #     asm = f.read()

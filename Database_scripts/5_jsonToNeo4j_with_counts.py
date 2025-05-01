@@ -6,6 +6,7 @@ from collections import defaultdict
 # Path to your JSON file
 JSON_PATH = "/home/spire2/SPIRE_GLLeN/Neo4J/cfg_data.json"
 
+
 def main():
     if not os.path.exists(JSON_PATH):
         print(f"[ERROR] File not found: {JSON_PATH}")
@@ -32,7 +33,9 @@ def main():
         total_files += 1
 
     print(f"Analyzed {total_files} function CFGs.\n")
-    print("Distribution Summary (Loop Count → Decision Count → Node Count Frequencies):\n")
+    print(
+        "Distribution Summary (Loop Count → Decision Count → Node Count Frequencies):\n"
+    )
 
     for loop_count in sorted(dist.keys()):
         print(f"- {loop_count} loop(s):")
@@ -46,6 +49,7 @@ def main():
             print(f"  ↳ {decision_count} decision(s):")
             for nc in sorted(node_freq.keys()):
                 print(f"      • {nc:3d} nodes  =>  {node_freq[nc]} function(s)")
+
 
 if __name__ == "__main__":
     main()

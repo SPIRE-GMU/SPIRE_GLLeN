@@ -40,10 +40,16 @@ def asmToC(asmCode):
         input_asm_code = asm_function
 
     input = (
-        "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code and return only C code with no other text, explinations, or formatting"
+        "Assembly Code:\n"
+        + input_asm_code
+        + "\n\nDecompile the above Assembly Code and return only C code with no other text, explinations, or formatting"
     )
 
-    input =  "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code formatted with the C code surrounded by ``` to indicate where the code is"
+    input = (
+        "Assembly Code:\n"
+        + input_asm_code
+        + "\n\nDecompile the above Assembly Code into C code formatted with the C code surrounded by ``` to indicate where the code is"
+    )
 
     print(input)
     # input = "Write a simple python buble sort method and return only the code"
@@ -73,8 +79,9 @@ def cToCfg(c_file_name):
 
     return c_file_name.split(".")[0] + ".out"
 
+
 def asmToCFG(dot_file, obj_file, func_name):
-    #r2 takes input object file.
+    # r2 takes input object file.
 
     # Step 3: Open radare2 (r2pipe) and analyze the object file
     print(f"[DEBUG] Opening radare2 on {obj_file} with function name = {func_name}")
@@ -110,29 +117,31 @@ def asmToCFG(dot_file, obj_file, func_name):
     with open(dot_file, "w") as f:
         f.write(dot_data)
     print(f"[DEBUG] DOT CFG saved to '{dot_file}'")
-    
+
 
 def objToS(out_dir, object_file):
-    assembly_file_path = os.path.join(out_dir, os.path.splitext(os.path.basename(object_file))[0] + '.s')
-    
+    assembly_file_path = os.path.join(
+        out_dir, os.path.splitext(os.path.basename(object_file))[0] + ".s"
+    )
+
     # Use objdump to disassemble the object file
-    with open(assembly_file_path, 'w') as f:
-        subprocess.run(['objdump', '-d', object_file], 
-                      check=True, stdout=f)
+    with open(assembly_file_path, "w") as f:
+        subprocess.run(["objdump", "-d", object_file], check=True, stdout=f)
 
     # Parse the assembly file to extract function name
     function_name = None
-    with open(assembly_file_path, 'r') as f:
+    with open(assembly_file_path, "r") as f:
         for line in f:
             # Look for lines containing function declarations
-            if '<' in line and '>:' in line:
+            if "<" in line and ">:" in line:
                 # Extract the function name between < and >
-                start = line.find('<') + 1
-                end = line.find('>')
+                start = line.find("<") + 1
+                end = line.find(">")
                 function_name = line[start:end]
                 break  # Stop after finding the first function
-    
+
     return assembly_file_path, function_name
+
 
 def loadModel():
     """Prepare input for a DeepSeek Coder or other downstream tasks"""
@@ -145,11 +154,11 @@ def loadModel():
     deepseek_model_path = "deepseek-ai/deepseek-r1-distill-qwen-14b"
     # deepseek_model_path = "deepseek-ai/deepseek-r1-distill-llama-8b"
 
-    global tokenizer_chat 
+    global tokenizer_chat
     tokenizer_chat = AutoTokenizer.from_pretrained(
         deepseek_model_path, trust_remote_code=True
     )
-    global model_chat 
+    global model_chat
     model_chat = AutoModelForCausalLM.from_pretrained(
         deepseek_model_path,
         torch_dtype=torch.bfloat16,
@@ -158,7 +167,7 @@ def loadModel():
         device_map="auto",
     )
 
-    global accelerator 
+    global accelerator
     accelerator = Accelerator()
 
     model_chat = accelerator.prepare(model_chat)
@@ -166,6 +175,7 @@ def loadModel():
     # assemble files to format model can understand
 
     # input_text = "#write a single bubble sort algorith in python"
+
 
 def querryModel(input_text):
     # Tokenize and generate output
@@ -206,6 +216,7 @@ def querryModel(input_text):
 # Passed Arguments
 # First argument is source assmembly code to decompile
 
+
 def main():
 
     # source_asm = sys.argv[1]
@@ -214,29 +225,23 @@ def main():
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
     # loadModel()
 
-    
-
     # 1.A) Assmebly to C Code using specified model (DeepSeek Coder)
     # created_c = asmToC(source_asm)
     # created_c = created_c.split("```")[1][1:]
 
     # print(created_c)
 
-    
     # here logic for temp_c/ : split on / and take the last one in source_asm.split
     # c_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.c"
-    
-    # with open(c_out_file_name, "w") as file:
-        # file.write(created_c)
 
+    # with open(c_out_file_name, "w") as file:
+    # file.write(created_c)
 
     # 1.B) Assembly to .dot CFG directly
-    source_asm, function_name = objToS("temp_c/",source_obj)
+    source_asm, function_name = objToS("temp_c/", source_obj)
 
-    dot_out_file_name = "temp_c/" + source_asm.split('/')[-1].split(".")[0] + "_out.dot"
+    dot_out_file_name = "temp_c/" + source_asm.split("/")[-1].split(".")[0] + "_out.dot"
     asmToCFG(dot_out_file_name, source_obj, function_name)
-
-    
 
     # 2) C Code to CFG
     # not needed when using r2
@@ -248,12 +253,11 @@ def main():
     #     if filename.endswith(".cfg"):
     #         cfg_file_name = filename
 
-
     # matches = KNN_search.make_search("temp_c/"+cfg_file_name)
     original_argv = sys.argv
 
     N_value = 2
-    sys.argv = ['06_GED_search.py', dot_out_file_name, N_value**3, N_value]
+    sys.argv = ["06_GED_search.py", dot_out_file_name, N_value**3, N_value]
     matches = search.main()
 
     sys.argv = original_argv
@@ -269,13 +273,20 @@ def main():
         input_asm_code = asm_function
 
     model_input = (
-        "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference\n\n" + "\n\n".join([f"Structural Reference {i+1}:\n {match}" for i, match in enumerate(matches)])
-
-    ) 
+        "Assembly Code:\n"
+        + input_asm_code
+        + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference\n\n"
+        + "\n\n".join(
+            [
+                f"Structural Reference {i+1}:\n {match}"
+                for i, match in enumerate(matches)
+            ]
+        )
+    )
 
     # model_input = (
     #     "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is"
-    # ) 
+    # )
 
     print("\n\n\n\n+++++++++++++++++++++++++++++++++++++++")
     print(model_input)
@@ -287,9 +298,10 @@ def main():
     # results = querryModel(input)
 
     print(results)
-    return(results)
+    return results
 
     # 5) Similarity Matching with SMT to determine effectiveness
+
 
 def testCase():
     source_asm = "justin/count_alpha_digit.s"
@@ -304,9 +316,16 @@ def testCase():
         matches = [text]
 
     model_input = (
-        "Assembly Code:\n" + input_asm_code + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference\n\n" + "\n\n".join([f"Structural Reference {i+1}:\n {match}" for i, match in enumerate(matches)])
-
-    ) 
+        "Assembly Code:\n"
+        + input_asm_code
+        + "\n\nDecompile the above Assembly Code into C code with the C code surrounded by ``` to indicate where the code is using the following reference C code as a similar structural reference\n\n"
+        + "\n\n".join(
+            [
+                f"Structural Reference {i+1}:\n {match}"
+                for i, match in enumerate(matches)
+            ]
+        )
+    )
     print("\n\n\n\n+++++++++++++++++++++++++++++++++++++++")
     print(model_input)
 
@@ -317,9 +336,10 @@ def testCase():
     # results = querryModel(input)
 
     print(results)
-    return(results)
+    return results
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
     loadModel()
     main()

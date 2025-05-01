@@ -4,6 +4,7 @@ import sys
 import subprocess
 import r2pipe
 
+
 def asm_to_dot(asm_file, func_name=None):
     """
     1) Assemble `asm_file` (e.g. A2W.s) into an object (A2W.o).
@@ -72,6 +73,7 @@ def asm_to_dot(asm_file, func_name=None):
         f.write(dot_data)
     print(f"[DEBUG] DOT CFG saved to '{dot_file}'")
 
+
 def main():
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <assembly_file.s> [function_name]")
@@ -86,6 +88,7 @@ def main():
     except Exception as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

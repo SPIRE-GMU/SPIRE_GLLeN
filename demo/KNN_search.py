@@ -317,6 +317,7 @@ def compute_knn(new_vec, db_data, top_k=3):
         results.append((names[i], sims[i]))
     return results
 
+
 ###############################################################################
 # USING FNAME, RETURN C CODE
 ###############################################################################
@@ -332,12 +333,13 @@ def fetch_code_from_neo4j(fname):
             MATCH (f:Function {function_name: $fname})
             RETURN f.c_data AS code
             """,
-            fname=fname
+            fname=fname,
         )
         record = result.single()
         if record:
             return record["code"]
         return None
+
 
 ###############################################################################
 # MAIN
@@ -418,6 +420,7 @@ def make_search(cfg_file_path):
 
     # For each of top match, assembly into string array and return for handling.
     return matches
+
 
 if __name__ == "__main__":
     make_search(sys.argv[1])
