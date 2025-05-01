@@ -11,12 +11,15 @@ NEO4J_PASSWORD = "rootboot"  # update if needed
 
 # Directories for JSON and raw files
 JSON_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/json_files"
-DOT_DIRECTORY  = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/dot_files_newDB"
-CFG_DIRECTORY  = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/cfg_files_newDB"
-ASM_DIRECTORY  = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/asm_files_newDB"
-C_DIRECTORY    = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/c_files_train_real_compilable_newDB"
+DOT_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/dot_files_newDB"
+CFG_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/cfg_files_newDB"
+ASM_DIRECTORY = "/home/spire2/SPIRE_GLLeN/Neo4J/justin/asm_files_newDB"
+C_DIRECTORY = (
+    "/home/spire2/SPIRE_GLLeN/Neo4J/justin/c_files_train_real_compilable_newDB"
+)
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+
 
 def read_file_if_exists(file_path):
     if os.path.isfile(file_path):
@@ -24,10 +27,12 @@ def read_file_if_exists(file_path):
             return f.read()
     return ""
 
+
 def extract_block_number(block_id):
     """Attempt to parse 'basic_block_(X)' from block_id, or return original."""
-    match = re.search(r'basic_block_(\d+)', block_id)
+    match = re.search(r"basic_block_(\d+)", block_id)
     return match.group(1) if match else block_id
+
 
 def insert_dot_json_into_neo4j(session, dot_json, json_filename):
     """
@@ -46,15 +51,15 @@ def insert_dot_json_into_neo4j(session, dot_json, json_filename):
     function_name = dot_json.get("function_name", "UnknownFunc")
 
     # File paths based on base_name
-    dot_path = os.path.join(DOT_DIRECTORY,  base_name + ".dot")
-    cfg_path = os.path.join(CFG_DIRECTORY,  base_name + ".cfg")
-    asm_path = os.path.join(ASM_DIRECTORY,  base_name + ".s")
-    c_path   = os.path.join(C_DIRECTORY,    base_name + ".c")
+    dot_path = os.path.join(DOT_DIRECTORY, base_name + ".dot")
+    cfg_path = os.path.join(CFG_DIRECTORY, base_name + ".cfg")
+    asm_path = os.path.join(ASM_DIRECTORY, base_name + ".s")
+    c_path = os.path.join(C_DIRECTORY, base_name + ".c")
 
     dot_data = read_file_if_exists(dot_path)
     cfg_data = read_file_if_exists(cfg_path)
     asm_data = read_file_if_exists(asm_path)
-    c_data   = read_file_if_exists(c_path)
+    c_data = read_file_if_exists(c_path)
 
     # Create or MERGE the Function node by property unique_id=base_name
     session.run(
@@ -71,7 +76,7 @@ def insert_dot_json_into_neo4j(session, dot_json, json_filename):
         dot_data=dot_data,
         cfg_data=cfg_data,
         asm_data=asm_data,
-        c_data=c_data
+        c_data=c_data,
     )
 
     # Insert BasicBlocks
@@ -105,7 +110,7 @@ def insert_dot_json_into_neo4j(session, dot_json, json_filename):
             all_attrs=attr_dict,
             node_name=node_name,
             unique_id=base_name,
-            function_name=function_name
+            function_name=function_name,
         )
 
     # Link Function → ENTRY block
@@ -116,7 +121,7 @@ def insert_dot_json_into_neo4j(session, dot_json, json_filename):
             MERGE (f)-[:STARTS_AT]->(b)
             """,
             unique_id=base_name,
-            entry_id=entry_node_id
+            entry_id=entry_node_id,
         )
 
     # Insert NEXT edges
@@ -145,8 +150,9 @@ def insert_dot_json_into_neo4j(session, dot_json, json_filename):
             """,
             src_id=src_id,
             dst_id=dst_id,
-            edge_attrs=edge_attrs
+            edge_attrs=edge_attrs,
         )
+
 
 def main():
     json_files = [f for f in os.listdir(JSON_DIRECTORY) if f.endswith(".json")]
@@ -164,7 +170,10 @@ def main():
             print(f"[→] Inserting {jf} (function_name={func_name})")
             insert_dot_json_into_neo4j(session, dot_json, jf)
 
-    print("✅ All DOT-based JSON data has been successfully inserted into Neo4j with function_unique_id on each BasicBlock.")
+    print(
+        "✅ All DOT-based JSON data has been successfully inserted into Neo4j with function_unique_id on each BasicBlock."
+    )
+
 
 if __name__ == "__main__":
     main()

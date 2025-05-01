@@ -37,30 +37,41 @@ NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "rootboot")
 
-TAG_RE = re.compile(r'_(sym|fcn|sub)\..*$')
+TAG_RE = re.compile(r"_(sym|fcn|sub)\..*$")
 
 ###############################################################################
 # Helper
 ###############################################################################
 
+
 def strip_tag(uid: str) -> str:
     """Return UID with trailing radare tag removed."""
-    return TAG_RE.sub('', uid)
+    return TAG_RE.sub("", uid)
+
 
 ###############################################################################
 # Main
 ###############################################################################
 
+
 def main():
-    ap = argparse.ArgumentParser(description="Delete radare‑prefixed duplicate Function nodes")
-    ap.add_argument("--dry-run", action="store_true", help="Preview actions without mutating the DB")
+    ap = argparse.ArgumentParser(
+        description="Delete radare‑prefixed duplicate Function nodes"
+    )
+    ap.add_argument(
+        "--dry-run", action="store_true", help="Preview actions without mutating the DB"
+    )
     ap.add_argument("-v", action="count", default=0)
     args = ap.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG if args.v else logging.INFO,
-                        format="%(levelname)s: %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG if args.v else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
 
-    driver = GraphDatabase.driver(NEO4J_URI, auth=basic_auth(NEO4J_USER, NEO4J_PASSWORD))
+    driver = GraphDatabase.driver(
+        NEO4J_URI, auth=basic_auth(NEO4J_USER, NEO4J_PASSWORD)
+    )
 
     deleted = merged = 0
 
@@ -88,7 +99,11 @@ def main():
             if can_exists and dup_dot:
                 merged += 1
                 if args.dry_run:
-                    logging.info("[dry] copy dot_data_radare to %s then DELETE %s", base_uid, dup_uid)
+                    logging.info(
+                        "[dry] copy dot_data_radare to %s then DELETE %s",
+                        base_uid,
+                        dup_uid,
+                    )
                 else:
                     s.run(
                         """
@@ -107,11 +122,18 @@ def main():
                 if args.dry_run:
                     logging.info("[dry] DELETE %s", dup_uid)
                 else:
-                    s.run("MATCH (d:Function {unique_id:$u}) DETACH DELETE d", u=dup_uid)
+                    s.run(
+                        "MATCH (d:Function {unique_id:$u}) DETACH DELETE d", u=dup_uid
+                    )
                     deleted += 1
 
     driver.close()
-    logging.info("Summary: deleted=%d, merged_into_existing=%d, dry=%s", deleted, merged, args.dry_run)
+    logging.info(
+        "Summary: deleted=%d, merged_into_existing=%d, dry=%s",
+        deleted,
+        merged,
+        args.dry_run,
+    )
 
 
 if __name__ == "__main__":

@@ -38,6 +38,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "rootboot")
 # Helper – run Cypher and return records as list of dicts
 ###############################################################################
 
+
 def run_cypher(session, query: str, **params):
     logging.debug("Cypher>>>\n%s\nparams=%s", query.strip(), params or "{}")
     try:
@@ -46,29 +47,46 @@ def run_cypher(session, query: str, **params):
         logging.error("Cypher error [%s]: %s", e.code, e.message)
         raise
 
+
 ###############################################################################
 # Main
 ###############################################################################
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Fetch a Function node from Neo4j and show DB stats")
+    parser = argparse.ArgumentParser(
+        description="Fetch a Function node from Neo4j and show DB stats"
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--id", dest="uid", help="Function.unique_id to match")
     group.add_argument("--name", help="Function.name to match (may return >1)")
-    parser.add_argument("--with-blocks", action="store_true", help="Include BasicBlock list")
-    parser.add_argument("-o", "--out", type=Path, help="Write JSON output to file instead of stdout")
-    parser.add_argument("-v", action="count", default=0, help="Increase verbosity (‑v DEBUG)")
+    parser.add_argument(
+        "--with-blocks", action="store_true", help="Include BasicBlock list"
+    )
+    parser.add_argument(
+        "-o", "--out", type=Path, help="Write JSON output to file instead of stdout"
+    )
+    parser.add_argument(
+        "-v", action="count", default=0, help="Increase verbosity (‑v DEBUG)"
+    )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG if args.v else logging.INFO, format="%(levelname)s: %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG if args.v else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
 
-    driver = GraphDatabase.driver(NEO4J_URI, auth=basic_auth(NEO4J_USER, NEO4J_PASSWORD))
+    driver = GraphDatabase.driver(
+        NEO4J_URI, auth=basic_auth(NEO4J_USER, NEO4J_PASSWORD)
+    )
 
     with driver.session() as session:
         # --------------------------------------------------------------
         # 0. How many Function nodes in total?
         # --------------------------------------------------------------
-        total_funcs = run_cypher(session, "MATCH (f:Function) RETURN count(f) AS n")[0]["n"]
+        total_funcs = run_cypher(session, "MATCH (f:Function) RETURN count(f) AS n")[0][
+            "n"
+        ]
         logging.info("Total Function nodes in DB: %d", total_funcs)
 
         # --------------------------------------------------------------
@@ -109,7 +127,9 @@ def main():
             """
             blocks = run_cypher(session, block_query, **params)
             blocks_sorted = sorted(blocks, key=lambda x: x["id"])
-            result_obj["BasicBlocks"] = {rec["id"]: rec["props"] for rec in blocks_sorted}
+            result_obj["BasicBlocks"] = {
+                rec["id"]: rec["props"] for rec in blocks_sorted
+            }
 
     driver.close()
 

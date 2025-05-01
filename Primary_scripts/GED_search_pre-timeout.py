@@ -4,20 +4,25 @@ import networkx as nx, pydot
 from collections import defaultdict
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
+
 # Neo4j connection settings
 load_dotenv()
 # Suppress low-level Neo4j warnings
 
 # Neo4j config
 NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD = (
-    os.environ.get('NEO4J_CONNECTION_URI'), os.environ.get("NEO4J_USERNAME"), os.environ.get("NEO4J_PASSWORD")
+    os.environ.get("NEO4J_CONNECTION_URI"),
+    os.environ.get("NEO4J_USERNAME"),
+    os.environ.get("NEO4J_PASSWORD"),
 )
+
 
 def flatten_dot(txt: str) -> pydot.Dot:
     gs = pydot.graph_from_dot_data(txt)
     if not gs:
         raise ValueError("No graphs found in dot data")
     combo = pydot.Dot(graph_type="digraph")
+
     def add(pg):
         for n in pg.get_nodes():
             if n.get_name() not in {"node", "edge", "graph"}:
@@ -26,9 +31,11 @@ def flatten_dot(txt: str) -> pydot.Dot:
             combo.add_edge(e)
         for sg in pg.get_subgraphs():
             add(sg)
+
     for g in gs:
         add(g)
     return combo
+
 
 def to_nx(txt: str) -> nx.DiGraph:
     G = nx.nx_pydot.from_pydot(flatten_dot(txt))
@@ -39,18 +46,26 @@ def to_nx(txt: str) -> nx.DiGraph:
         H.add_edge(u.split(":")[0], v.split(":")[0])
     return H
 
+
 def clean_query(txt: str) -> nx.DiGraph:
     return to_nx(txt)
 
+
 def stats(G: nx.DiGraph):
-    loops = sum(1 for c in nx.strongly_connected_components(G)
-                if len(c) > 1 or (len(c) == 1 and G.has_edge(next(iter(c)), next(iter(c)))))
+    loops = sum(
+        1
+        for c in nx.strongly_connected_components(G)
+        if len(c) > 1 or (len(c) == 1 and G.has_edge(next(iter(c)), next(iter(c))))
+    )
     decisions = sum(1 for n in G if G.out_degree(n) >= 2)
     return (G.number_of_nodes(), G.number_of_edges(), loops, decisions)
 
+
 def ged(G1, G2, timeout=5):
     return nx.graph_edit_distance(
-        G1, G2, timeout=timeout,
+        G1,
+        G2,
+        timeout=timeout,
         node_subst_cost=lambda a, b: 0,
         edge_subst_cost=lambda a, b: 0,
         node_del_cost=lambda n: 1,
@@ -58,6 +73,7 @@ def ged(G1, G2, timeout=5):
         edge_del_cost=lambda e: 1,
         edge_ins_cost=lambda e: 1,
     )
+
 
 def fetch_candidates():
     q = """
@@ -75,11 +91,15 @@ def fetch_candidates():
            f.loop_count AS loop_count,
            f.decision_count AS decision_count
     """
-    with GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)).session() as s:
+    with GraphDatabase.driver(
+        NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)
+    ).session() as s:
         return [dict(r) for r in s.run(q)]
+
 
 def euclid(v1, v2):
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(v1, v2)))
+
 
 def main():
     if len(sys.argv) < 2:
@@ -88,7 +108,7 @@ def main():
 
     query_file = sys.argv[1]
     k_pass1 = int(sys.argv[2]) if len(sys.argv) > 2 else 20
-    top_n   = int(sys.argv[3]) if len(sys.argv) > 3 else 5
+    top_n = int(sys.argv[3]) if len(sys.argv) > 3 else 5
 
     try:
         with open(query_file) as f:
@@ -108,7 +128,17 @@ def main():
 
     for c in cands:
         try:
-            c["emb"] = tuple(map(float, (c["node_count"], c["edge_count"], c["loop_count"], c["decision_count"])))
+            c["emb"] = tuple(
+                map(
+                    float,
+                    (
+                        c["node_count"],
+                        c["edge_count"],
+                        c["loop_count"],
+                        c["decision_count"],
+                    ),
+                )
+            )
             c["dist"] = euclid(q_vec, c["emb"])
         except:
             c["dist"] = float("inf")
@@ -135,9 +165,9 @@ def main():
         try:
             G_c = clean_query(c["dot_data_radare"])
             g = ged(G_q, G_c, timeout=5)
-            c["ged"] = float('inf') if g is None else g
+            c["ged"] = float("inf") if g is None else g
         except Exception as e:
-            c["ged"] = float('inf')
+            c["ged"] = float("inf")
             print(f"   !! {c.get('uid')} GED error: {e}")
         else:
             print(f"   {c['uid']} GED={c['ged']:.2f}")
@@ -153,16 +183,22 @@ def main():
         needed = top_n - len(ged_zero)
         others = [c for c in rough if c.get("ged") != 0.0]
         top = ged_zero + others[:needed]
-        print(f"\nReturning {len(top)} total candidates after GED refinement (including {len(ged_zero)} exact matches).")
+        print(
+            f"\nReturning {len(top)} total candidates after GED refinement (including {len(ged_zero)} exact matches)."
+        )
 
     print(f"\nTop {len(top)} candidates after GED:")
     for i, c in enumerate(top, 1):
         print(f"{i:2}. {c['fname']:<30} GED={c['ged']:.2f} d1={c['dist']:.2f}")
 
     snippets = []
-    with GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)).session() as s:
+    with GraphDatabase.driver(
+        NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)
+    ).session() as s:
         for c in top:
-            rec = s.run("MATCH (f:Function {unique_id:$u}) RETURN f.c_data AS c", u=c["uid"]).single()
+            rec = s.run(
+                "MATCH (f:Function {unique_id:$u}) RETURN f.c_data AS c", u=c["uid"]
+            ).single()
             snippets.append(rec["c"] if rec and rec["c"] else "[No c_data found]")
 
     print("\n───── C‑code snippets (best matches) ─────")
@@ -170,6 +206,7 @@ def main():
         print(f"\n### Candidate {i}\n{code}")
 
     return snippets
+
 
 if __name__ == "__main__":
     main()

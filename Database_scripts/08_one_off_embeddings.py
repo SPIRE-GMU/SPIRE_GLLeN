@@ -24,6 +24,7 @@ NEO4J_URI = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
 NEO4J_PASSWORD = "rootboot"
 
+
 # ───────────────────────────────────────── DOT parsing helpers
 def flatten_dot(txt: str) -> pydot.Dot:
     """Parse dot data via pydot and flatten any subgraphs into a single combined DOT graph."""
@@ -31,6 +32,7 @@ def flatten_dot(txt: str) -> pydot.Dot:
     if not graphs:
         raise ValueError("No graphs found in dot data.")
     combo = pydot.Dot(graph_type="digraph")
+
     def add(pg):
         for n in pg.get_nodes():
             # Skip default nodes
@@ -40,9 +42,11 @@ def flatten_dot(txt: str) -> pydot.Dot:
             combo.add_edge(e)
         for sg in pg.get_subgraphs():
             add(sg)
+
     for g in graphs:
         add(g)
     return combo
+
 
 def to_nx(txt: str) -> nx.DiGraph:
     """Convert DOT data to a NetworkX DiGraph and strip port suffixes (e.g., ':s', ':n')."""
@@ -54,9 +58,11 @@ def to_nx(txt: str) -> nx.DiGraph:
         H.add_edge(u.split(":")[0], v.split(":")[0])
     return H
 
+
 def clean_dot(txt: str) -> nx.DiGraph:
     """Processes the DOT file text into a normalized NetworkX graph (no synthetic modifications)."""
     return to_nx(txt)
+
 
 # ───────────────────────────────────────── Structural statistics
 def stats(G: nx.DiGraph):
@@ -70,13 +76,20 @@ def stats(G: nx.DiGraph):
     """
     num_nodes = G.number_of_nodes()
     num_edges = G.number_of_edges()
-    loops = sum(1 for comp in nx.strongly_connected_components(G)
-                if len(comp) > 1 or (len(comp) == 1 and G.has_edge(next(iter(comp)), next(iter(comp)))))
+    loops = sum(
+        1
+        for comp in nx.strongly_connected_components(G)
+        if len(comp) > 1
+        or (len(comp) == 1 and G.has_edge(next(iter(comp)), next(iter(comp))))
+    )
     decisions = sum(1 for n in G if G.out_degree(n) >= 2)
     return (num_nodes, num_edges, loops, decisions)
 
+
 # ───────────────────────────────────────── Neo4j update helper
-def update_function_stats(unique_id, node_count, edge_count, loop_count, decision_count):
+def update_function_stats(
+    unique_id, node_count, edge_count, loop_count, decision_count
+):
     """
     Update the Function node in Neo4j (matched by unique_id) with the computed statistics.
     Prints out verbose information about the update.
@@ -92,21 +105,32 @@ def update_function_stats(unique_id, node_count, edge_count, loop_count, decisio
     try:
         driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
         with driver.session() as session:
-            result = session.run(query, uid=unique_id, node_count=node_count, edge_count=edge_count,
-                                  loop_count=loop_count, decision_count=decision_count)
+            result = session.run(
+                query,
+                uid=unique_id,
+                node_count=node_count,
+                edge_count=edge_count,
+                loop_count=loop_count,
+                decision_count=decision_count,
+            )
             record = result.single()
             if record:
                 fname = record["fname"]
-                print(f"Function '{fname}' (unique_id: {unique_id}) updated successfully:")
+                print(
+                    f"Function '{fname}' (unique_id: {unique_id}) updated successfully:"
+                )
                 print(f"  Nodes: {node_count}")
                 print(f"  Edges: {edge_count}")
                 print(f"  Loops: {loop_count}")
                 print(f"  Decisions: {decision_count}")
             else:
-                print(f"No Function node with unique_id '{unique_id}' was found in Neo4j.")
+                print(
+                    f"No Function node with unique_id '{unique_id}' was found in Neo4j."
+                )
         driver.close()
     except Exception as e:
         print(f"Error updating function stats in Neo4j: {e}")
+
 
 # ───────────────────────────────────────── Main routine
 def main():
@@ -121,9 +145,9 @@ def main():
 
     # Assume the unique_id is the basename of the dot file without extension.
     unique_id = os.path.splitext(os.path.basename(dot_file))[0]
-    
+
     print(f"Processing DOT file for function '{unique_id}': {dot_file}")
-    
+
     try:
         with open(dot_file, "r") as f:
             dot_text = f.read()
@@ -147,6 +171,7 @@ def main():
 
     # Now, update the function node in Neo4j with these values.
     update_function_stats(unique_id, node_count, edge_count, loop_count, decision_count)
+
 
 if __name__ == "__main__":
     main()

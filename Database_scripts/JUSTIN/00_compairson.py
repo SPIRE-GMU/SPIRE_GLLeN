@@ -9,11 +9,13 @@ from networkx.algorithms import isomorphism
 DEFAULT_GCC_DOT = "accept_i16.c.015t.cfg.dot"
 DEFAULT_R2_DOT = "accept_i16.dot"
 
+
 def flatten_pydot_graph(dot_file):
     graphs = pydot.graph_from_dot_file(dot_file)
     if not graphs:
         raise ValueError(f"No graphs found in {dot_file}")
-    combined = pydot.Dot(graph_type='digraph')
+    combined = pydot.Dot(graph_type="digraph")
+
     def add_from_subgraph(pg):
         for node in pg.get_nodes():
             if node.get_name() not in ["node", "graph", "edge"]:
@@ -22,14 +24,17 @@ def flatten_pydot_graph(dot_file):
             combined.add_edge(edge)
         for sub in pg.get_subgraphs():
             add_from_subgraph(sub)
+
     for g in graphs:
         add_from_subgraph(g)
     return combined
+
 
 def read_flattened_dot(file_path):
     pydot_combined = flatten_pydot_graph(file_path)
     G = nx.nx_pydot.from_pydot(pydot_combined)
     return G
+
 
 def normalize_graph(G):
     newG = nx.DiGraph()
@@ -42,6 +47,7 @@ def normalize_graph(G):
         newG.add_edge(new_u, new_v)
     return newG
 
+
 def filter_overhead_nodes(G, overhead_nodes):
     filtered = G.copy()
     for node in overhead_nodes:
@@ -49,14 +55,28 @@ def filter_overhead_nodes(G, overhead_nodes):
             filtered.remove_node(node)
     return filtered
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Compare two CFG DOT files for structural similarity.")
-    parser.add_argument('--gcc', '-g', type=str, default=DEFAULT_GCC_DOT,
-                        help="Path to GCC DOT file (default: {})".format(DEFAULT_GCC_DOT))
-    parser.add_argument('--r2', '-r', type=str, default=DEFAULT_R2_DOT,
-                        help="Path to radare2 DOT file (default: {})".format(DEFAULT_R2_DOT))
-    parser.add_argument('--graph', '-c', action='store_true',
-                        help="Display graphs using matplotlib")
+    parser = argparse.ArgumentParser(
+        description="Compare two CFG DOT files for structural similarity."
+    )
+    parser.add_argument(
+        "--gcc",
+        "-g",
+        type=str,
+        default=DEFAULT_GCC_DOT,
+        help="Path to GCC DOT file (default: {})".format(DEFAULT_GCC_DOT),
+    )
+    parser.add_argument(
+        "--r2",
+        "-r",
+        type=str,
+        default=DEFAULT_R2_DOT,
+        help="Path to radare2 DOT file (default: {})".format(DEFAULT_R2_DOT),
+    )
+    parser.add_argument(
+        "--graph", "-c", action="store_true", help="Display graphs using matplotlib"
+    )
     args = parser.parse_args()
 
     gcc_dot_file = args.gcc
@@ -76,13 +96,21 @@ def main():
     r2_graph = nx.nx_pydot.from_pydot(r2_pydot[0])
 
     # Final outputs.
-    print("GCC CFG: {} nodes, {} edges".format(gcc_filtered.number_of_nodes(), gcc_filtered.number_of_edges()))
-    print("radare2 CFG: {} nodes, {} edges".format(r2_graph.number_of_nodes(), r2_graph.number_of_edges()))
-    
+    print(
+        "GCC CFG: {} nodes, {} edges".format(
+            gcc_filtered.number_of_nodes(), gcc_filtered.number_of_edges()
+        )
+    )
+    print(
+        "radare2 CFG: {} nodes, {} edges".format(
+            r2_graph.number_of_nodes(), r2_graph.number_of_edges()
+        )
+    )
+
     node_match = lambda n1, n2: True
     GM = isomorphism.DiGraphMatcher(gcc_filtered, r2_graph, node_match=node_match)
     print("Isomorphic:", "Yes" if GM.is_isomorphic() else "No")
-    
+
     ged = nx.graph_edit_distance(gcc_filtered, r2_graph)
     print("Graph edit distance: {:.1f}".format(ged))
 
@@ -91,15 +119,30 @@ def main():
         plt.subplot(121)
         plt.title("Filtered CFG from GCC")
         pos1 = nx.spring_layout(gcc_filtered, seed=42)
-        nx.draw_networkx(gcc_filtered, pos=pos1, with_labels=True, node_color='lightblue', edge_color='gray', font_size=8)
-        plt.axis('off')
+        nx.draw_networkx(
+            gcc_filtered,
+            pos=pos1,
+            with_labels=True,
+            node_color="lightblue",
+            edge_color="gray",
+            font_size=8,
+        )
+        plt.axis("off")
         plt.subplot(122)
         plt.title("CFG from radare2")
         pos2 = nx.spring_layout(r2_graph, seed=42)
-        nx.draw_networkx(r2_graph, pos=pos2, with_labels=True, node_color='lightgreen', edge_color='gray', font_size=8)
-        plt.axis('off')
+        nx.draw_networkx(
+            r2_graph,
+            pos=pos2,
+            with_labels=True,
+            node_color="lightgreen",
+            edge_color="gray",
+            font_size=8,
+        )
+        plt.axis("off")
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == "__main__":
     main()

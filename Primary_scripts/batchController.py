@@ -16,9 +16,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OUTDIR = os.environ.get('OUTDIR')
+OUTDIR = os.environ.get("OUTDIR")
 
 stdout = sys.stdout
+
 
 def batch_process_assembly(input_directory):
     sys.stdout = stdout
@@ -28,57 +29,53 @@ def batch_process_assembly(input_directory):
 
     os.makedirs(OUTDIR, exist_ok=True)
 
-    handler_script = 'assemblySearchHandler.py'
+    handler_script = "assemblySearchHandler.py"
 
     for filename in os.listdir(input_directory):
-        
-        if filename.endswith('.o'):
 
-            #control flow stop
+        if filename.endswith(".o"):
+
+            # control flow stop
             # input(f"File: {filename}")
 
             input_file_path = os.path.join(input_directory, filename)
             filenametrim = filename.split(".o")[0]
             output_file_path = os.path.join(OUTDIR, f"{filenametrim}.c")
 
-            if(os.path.isfile(output_file_path)):
+            if os.path.isfile(output_file_path):
                 print(f"{filenametrim} already calculated, continuing")
                 continue
-                
+
             print(input_file_path)
             print(output_file_path)
-
-
 
             try:
                 # print("command")
                 # result = subprocess.run(
-                #     ['python3', handler_script, input_file_path], 
-                #     capture_output=True, 
+                #     ['python3', handler_script, input_file_path],
+                #     capture_output=True,
                 #     text=True,
                 #     check=True
                 # )
 
-                #stores args because assemblySearchHandler references them
+                # stores args because assemblySearchHandler references them
                 original_argv = sys.argv
-                sys.argv = ['assemblySearchHandler.py', input_file_path]
+                sys.argv = ["assemblySearchHandler.py", input_file_path]
                 sys.stdout = io.StringIO()
-                
+
                 result = assemblySearchHandler.main()
-                
+
                 # Restore original sys.argv
                 sys.argv = original_argv
 
-
-                with open(output_file_path, 'w') as output_file:
+                with open(output_file_path, "w") as output_file:
                     output_file.write(result)
                 sys.stdout = stdout
                 print(f"Processed {filename}: Result saved to {output_file_path}")
 
-
             except Exception as e:
                 print(f"Unexpected error in {filename}: {e}")
-            
+
 
 def main():
     input_directory = sys.argv[1]
@@ -89,6 +86,5 @@ def main():
     batch_process_assembly(input_directory)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-    

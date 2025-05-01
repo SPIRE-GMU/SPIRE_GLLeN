@@ -10,6 +10,7 @@ NEO4J_URI = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
 NEO4J_PASSWORD = "rootboot"
 
+
 # === Parsing Function ===
 def parse_radare_structure(dot_content):
     """
@@ -18,17 +19,17 @@ def parse_radare_structure(dot_content):
       - num_edges: total number of edges.
       - num_loops: loops detected via strongly connected component analysis.
       - num_decisions: count of nodes with two or more outgoing edges.
-    
+
     Assumes that nodes are denoted as hexadecimal strings (e.g. "0x400abc").
     """
     # Replace literal newline markers with actual newlines.
     dot_content = dot_content.replace("\\l", "\n").replace("\\n", "\n")
     lines = dot_content.splitlines()
-    
+
     nodes = set()
     edges = []
     outgoing = defaultdict(list)
-    
+
     # Regular expression to match edge definitions of the form: "0x..." -> "0x..."
     edge_re = re.compile(r'"(0x[0-9a-fA-F]+)"\s*->\s*"(0x[0-9a-fA-F]+)"')
     for line in lines:
@@ -40,10 +41,10 @@ def parse_radare_structure(dot_content):
                 nodes.add(dst)
                 edges.append((src, dst))
                 outgoing[src].append(dst)
-    
+
     # Count decision nodes: nodes with two or more outgoing edges.
     decision_count = sum(1 for targets in outgoing.values() if len(targets) >= 2)
-    
+
     # Build a directed graph to calculate loops using strongly connected components.
     G = nx.DiGraph()
     G.add_edges_from(edges)
@@ -60,8 +61,9 @@ def parse_radare_structure(dot_content):
         "num_blocks": len(nodes),
         "num_edges": len(edges),
         "num_loops": loops,
-        "num_decisions": decision_count
+        "num_decisions": decision_count,
     }
+
 
 # === Update the Function Node in Neo4j ===
 def update_function_with_embeddings(driver, unique_id, stats):
@@ -86,8 +88,9 @@ def update_function_with_embeddings(driver, unique_id, stats):
             node_count=stats["num_blocks"],
             edge_count=stats["num_edges"],
             loop_count=stats["num_loops"],
-            decision_count=stats["num_decisions"]
+            decision_count=stats["num_decisions"],
         )
+
 
 # === Retrieve Function Nodes with dot_data_radare Property ===
 def get_function_nodes_with_dot_radare(driver):
@@ -103,11 +106,14 @@ def get_function_nodes_with_dot_radare(driver):
     results = []
     with driver.session() as session:
         for record in session.run(query):
-            results.append({
-                "unique_id": record["unique_id"],
-                "dot_data_radare": record["dot_data_radare"]
-            })
+            results.append(
+                {
+                    "unique_id": record["unique_id"],
+                    "dot_data_radare": record["dot_data_radare"],
+                }
+            )
     return results
+
 
 # === Verify the Updates by Re-Querying Each Node ===
 def verify_updates(driver, unique_id):
@@ -132,20 +138,21 @@ def verify_updates(driver, unique_id):
         else:
             print(f"Function {unique_id} not found in the database.")
 
+
 # === Main Execution ===
 def main():
     # Connect to Neo4j.
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-    
+
     # Retrieve all Function nodes with dot_data_radare.
     functions = get_function_nodes_with_dot_radare(driver)
     if not functions:
         print("No Function nodes with dot_data_radare found in Neo4j.")
         driver.close()
         return
-    
+
     print(f"Found {len(functions)} function(s) with dot_data_radare.\n")
-    
+
     # Process each function: parse, compute embeddings, update node, then verify.
     for func in functions:
         unique_id = func["unique_id"]
@@ -158,16 +165,16 @@ def main():
             print(f"  Edges: {stats['num_edges']}")
             print(f"  Loops: {stats['num_loops']}")
             print(f"  Decision Points: {stats['num_decisions']}")
-            
+
             update_function_with_embeddings(driver, unique_id, stats)
             verify_updates(driver, unique_id)
         except Exception as e:
             print(f"Error processing function {unique_id}: {e}")
         print("-" * 50)
-    
+
     driver.close()
     print("All functions processed and embeddings updated.")
 
+
 if __name__ == "__main__":
     main()
-
